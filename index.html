@@ -19,15 +19,16 @@
   --accent: #2a6fdb;
 }
 * { box-sizing: border-box; }
+html, body { overflow-x: hidden; }
 body { margin: 0; font-family: var(--font-sans, system-ui, -apple-system, sans-serif); color: var(--fg); background: var(--bg); font-size: 14px; }
 header { padding: 16px 20px 8px; }
 h1 { font-size: 20px; margin: 0 0 4px; }
 h2 { font-size: 15px; margin: 0 0 8px; }
 h3 { font-size: 12px; margin: 14px 0 6px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
 .sub { color: var(--muted); margin: 0; }
-.layout { display: grid; grid-template-columns: 330px 1fr; gap: 16px; padding: 8px 20px 20px; }
-@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
-.card { border: 1px solid var(--line); border-radius: 10px; padding: 14px; background: var(--bg); }
+.layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; padding: 8px 20px 20px; }
+@media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); padding: 8px 10px 16px; } .controls { position: static; max-height: none; } }
+.card { min-width: 0; border: 1px solid var(--line); border-radius: 10px; padding: 14px; background: var(--bg); }
 .controls { position: sticky; top: 8px; align-self: start; max-height: calc(100vh - 16px); overflow-y: auto; }
 .row { display: grid; grid-template-columns: 1fr 44px; gap: 2px 8px; align-items: center; margin: 6px 0; }
 .row label { font-size: 13px; }
@@ -38,8 +39,9 @@ h3 { font-size: 12px; margin: 14px 0 6px; text-transform: uppercase; letter-spac
 button, select { font: inherit; font-size: 12px; color: var(--fg); background: var(--soft); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
 button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
 .toggles { display: grid; gap: 6px; font-size: 13px; margin-bottom: 6px; }
-.toggles label { display: flex; gap: 6px; align-items: center; }
-.main { display: grid; gap: 16px; min-width: 0; }
+.toggles label { display: flex; gap: 6px; align-items: center; min-width: 0; }
+.toggles select { flex: 1; min-width: 0; max-width: 100%; }
+.main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; }
 .top3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 @media (max-width: 600px) { .top3 { grid-template-columns: 1fr; } }
 .pick { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
@@ -47,8 +49,8 @@ button.on { background: var(--accent); color: #fff; border-color: var(--accent);
 .pick .nm { font-size: 16px; font-weight: 600; }
 .pick .sc { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .pick .why { font-size: 12px; color: var(--muted); }
-.two { display: grid; grid-template-columns: 1.25fr 1fr; gap: 16px; }
-@media (max-width: 1200px) { .two { grid-template-columns: 1fr; } }
+.two { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 1200px) { .two { grid-template-columns: minmax(0, 1fr); } }
 #map svg { width: 100%; max-width: 560px; height: auto; display: block; margin: 0 auto; }
 #map .state { fill: var(--soft); stroke: var(--line); stroke-width: .7; }
 #map .city { stroke: var(--bg); stroke-width: 1.5; cursor: pointer; }
@@ -58,13 +60,14 @@ button.on { background: var(--accent); color: #fff; border-color: var(--accent);
 .legend .bar { height: 10px; width: 160px; border-radius: 3px; background: linear-gradient(90deg, #d7301f, #fdae61, #ffffbf, #a6d96a, #1a9850); }
 #rank { height: 560px; }
 #radar { height: 300px; }
-table { border-collapse: collapse; width: 100%; font-size: 12px; font-variant-numeric: tabular-nums; }
-th, td { padding: 5px 6px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+table { border-collapse: collapse; width: 100%; font-size: 11px; font-variant-numeric: tabular-nums; }
+th, td { padding: 4px 3px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+th { white-space: normal; vertical-align: bottom; min-width: 44px; line-height: 1.2; }
 th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: var(--bg); }
 th { cursor: pointer; font-weight: 600; user-select: none; }
 th.sorted::after { content: " ▾"; }
 .scroll { overflow-x: auto; }
-.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px; font-size: 13px; }
+.detail-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px 14px; font-size: 13px; }
 .detail-grid div span { color: var(--muted); }
 .est { color: var(--muted); font-size: 11px; }
 .notes { font-size: 12px; color: var(--muted); line-height: 1.5; }
@@ -87,7 +90,7 @@ th.sorted::after { content: " ▾"; }
       <label>Pay:
         <select id="scen" aria-label="Pay scenario">
           <option value="A">A: $257.9k everywhere</option>
-          <option value="B">B: plus zone uplift (NYC +20%, Boston +15%, Seattle/NoVA/Naperville +10%)</option>
+          <option value="B" title="NYC +20%, Boston +15%, Seattle/NoVA/Naperville +10%">B: plus zone uplift</option>
         </select>
       </label>
       <label>Politics:
@@ -138,7 +141,7 @@ th.sorted::after { content: " ▾"; }
         <li><b>Driving:</b> traffic is INRIX 2025 Global Traffic Scorecard, hours lost per driver. Places outside INRIX's US top 25 (under 41 h) are estimated and marked est. Road safety is IIHS 2024 deaths per 100M vehicle miles, by state. Snow is the NOAA 1991–2020 normal annual snowfall, rounded.</li>
         <li><b>Living standards:</b> schools are Niche district grades turned into 0–100 (A+ = 97). Life expectancy is the County Health Rankings county figure (approximate, ±1 yr). Healthcare is my 1–5 rating of major academic or cancer centres nearby (e.g. Mayo Jacksonville, MD Anderson Houston, Duke/UNC Raleigh).</li>
         <li><b>Politics:</b> 2024 presidential Trump share. Unofficial Nov 2026 results: Democrats won the TX and GA governorships and flipped the NC House and both Arizona chambers, and the Utah GOP lost its House supermajority. FL, TN, SC and ID stayed firmly Republican.</li>
-        <li><b>Travel:</b> fastest regular itinerary to Singapore in hours (nonstop SJC/SEA/NYC; Greenville is estimated). Domestic airport is a 1–22 rank by nonstop reach. <b>Red Hat office</b> = an office within commuting distance (Raleigh HQ, Atlanta, Plano, N. Charleston, Santa Clara, Boston, Tysons).</li>
+        <li><b>Travel:</b> international airport = nonstop international destinations from the metro's main long-haul airport (San Jose uses SFO, NYC uses JFK, Naperville uses O'Hare), scored on a log scale so 100 vs 120 matters less than 0 vs 20. Domestic airport is a 1–22 rank by nonstop reach. <b>Red Hat office</b> = an office within commuting distance (Raleigh HQ, Atlanta, Plano, N. Charleston, Santa Clara, Boston, Tysons).</li>
         <li><b>Hazard:</b> FEMA National Risk Index county rating (1 = very low, 5 = very high). Florida home insurance ($2.8–6k/yr) isn't in the house price.</li>
       </ul>
     </section>
@@ -180,19 +183,19 @@ const CRIT = [
   { k: "traffic", g: "driving", label: "Light traffic",                get: d => d.inrix, hi: false, f: (v, d) => v + " h" + (d && d.inrix_est ? " est" : "") },
   { k: "roads",   g: "driving", label: "Road safety",                  get: d => d.iihs_vmt, hi: false, f: v => v.toFixed(2) },
   { k: "snow",    g: "driving", label: "Little snow / ice",            get: d => d.snow, hi: false, f: v => v + " in" },
-  { k: "asia",    g: "travel",  label: "Fast trips to Singapore",      get: d => d.sg_hours, hi: false, f: v => v + " h" },
+  { k: "intl",    g: "travel",  label: "International airport",        get: d => Math.log1p(d.intl), hi: true, f: (v, d) => d.intl + " intl" },
   { k: "domestic",g: "travel",  label: "Domestic airport",             get: d => d.dom_rank, hi: false, f: v => "#" + v },
   { k: "redhat",  g: "travel",  label: "Red Hat office nearby",        get: d => d.redhat, hi: true, f: v => v ? "yes" : "no" },
   { k: "cons",    g: "politics",label: "Conservative-leaning",         get: d => POL() === "state" ? d.state_trump : d.trump, hi: true, f: v => v.toFixed(1) + "%" },
 ];
 
 const PRESETS = {
-  "Balanced":            { money: 12, home: 10, rpp: 3, schools: 6, life: 3, health: 4, violent: 8, property: 4, beach: 9, conv: 6, climate: 4, hazard: 3, traffic: 4, roads: 4, snow: 3, asia: 7, domestic: 3, redhat: 2, cons: 5 },
-  "Money first":         { money: 30, home: 20, rpp: 8, schools: 4, life: 2, health: 2, violent: 6, property: 3, beach: 4, conv: 3, climate: 2, hazard: 2, traffic: 2, roads: 2, snow: 1, asia: 4, domestic: 1, redhat: 1, cons: 3 },
-  "Beach life":          { money: 10, home: 12, rpp: 2, schools: 4, life: 2, health: 3, violent: 8, property: 4, beach: 22, conv: 6, climate: 8, hazard: 2, traffic: 3, roads: 3, snow: 4, asia: 4, domestic: 1, redhat: 0, cons: 2 },
-  "Family & safety":     { money: 10, home: 10, rpp: 2, schools: 14, life: 5, health: 6, violent: 16, property: 8, beach: 4, conv: 3, climate: 3, hazard: 4, traffic: 3, roads: 5, snow: 2, asia: 3, domestic: 1, redhat: 0, cons: 1 },
-  "Conservative & cheap":{ money: 14, home: 16, rpp: 5, schools: 6, life: 2, health: 2, violent: 8, property: 4, beach: 6, conv: 3, climate: 3, hazard: 3, traffic: 3, roads: 3, snow: 2, asia: 3, domestic: 1, redhat: 0, cons: 16 },
-  "Close to Singapore":  { money: 12, home: 8, rpp: 2, schools: 5, life: 2, health: 3, violent: 7, property: 3, beach: 6, conv: 5, climate: 3, hazard: 2, traffic: 3, roads: 3, snow: 2, asia: 25, domestic: 5, redhat: 2, cons: 2 },
+  "Balanced":            { money: 12, home: 10, rpp: 3, schools: 6, life: 3, health: 4, violent: 8, property: 4, beach: 9, conv: 6, climate: 4, hazard: 3, traffic: 4, roads: 4, snow: 3, intl: 5, domestic: 5, redhat: 2, cons: 5 },
+  "Money first":         { money: 30, home: 20, rpp: 8, schools: 4, life: 2, health: 2, violent: 6, property: 3, beach: 4, conv: 3, climate: 2, hazard: 2, traffic: 2, roads: 2, snow: 1, intl: 2, domestic: 3, redhat: 1, cons: 3 },
+  "Beach life":          { money: 10, home: 12, rpp: 2, schools: 4, life: 2, health: 3, violent: 8, property: 4, beach: 22, conv: 6, climate: 8, hazard: 2, traffic: 3, roads: 3, snow: 4, intl: 2, domestic: 3, redhat: 0, cons: 2 },
+  "Family & safety":     { money: 10, home: 10, rpp: 2, schools: 14, life: 5, health: 6, violent: 16, property: 8, beach: 4, conv: 3, climate: 3, hazard: 4, traffic: 3, roads: 5, snow: 2, intl: 2, domestic: 2, redhat: 0, cons: 1 },
+  "Conservative & cheap":{ money: 14, home: 16, rpp: 5, schools: 6, life: 2, health: 2, violent: 8, property: 4, beach: 6, conv: 3, climate: 3, hazard: 3, traffic: 3, roads: 3, snow: 2, intl: 2, domestic: 2, redhat: 0, cons: 16 },
+  "Well connected":      { money: 12, home: 8, rpp: 2, schools: 5, life: 2, health: 3, violent: 7, property: 3, beach: 6, conv: 5, climate: 3, hazard: 2, traffic: 3, roads: 3, snow: 2, intl: 15, domestic: 15, redhat: 2, cons: 2 },
 };
 let W = { ...PRESETS["Balanced"] };
 let sel = null, activePreset = "Balanced", sortKey = "total";
@@ -384,7 +387,7 @@ function renderDetail(res) {
       <div><span>Road deaths</span> ${d.iihs_vmt} per 100M mi</div>
       <div><span>Snow</span> ${d.snow} in/yr</div>
       <div><span>July high / Jan low</span> ${d.jul_hi}° / ${d.jan_lo}°F</div>
-      <div><span>To Singapore</span> ${d.sg_hours} h</div>
+      <div><span>Intl nonstops</span> ${d.intl}</div>
       <div><span>Trump 2024</span> county ${d.trump}% · state ${d.state_trump}%</div>
       <div><span>Schools / life exp.</span> ${d.schools} / ${d.life_exp} yrs</div>
     </div>`;
@@ -410,7 +413,7 @@ function renderTable(res) {
   });
   let h = "<thead><tr>" + cols.map(c => `<th data-k="${c.k}" class="${sortKey === c.k ? "sorted" : ""}" title="${c.c ? (W[c.k].toFixed(1) + "% weight") : ""}">${c.label}${c.c ? `<br><span class="est">${W[c.k].toFixed(1)}%</span>` : ""}</th>`).join("") + "</tr></thead><tbody>";
   for (const r of rows) {
-    h += `<tr><td>${r.rank}. ${r.d.name}</td><td><span class="cell-bar" style="width:${r.total * .4}px;background:${colour(r.total)}"></span><b>${r.total.toFixed(1)}</b></td>`;
+    h += `<tr><td>${r.rank}. ${r.d.name}</td><td><span class="cell-bar" style="width:${r.total * .25}px;background:${colour(r.total)}"></span><b>${r.total.toFixed(1)}</b></td>`;
     for (const c of CRIT) {
       const s = r.s[c.k];
       h += `<td title="score ${s.toFixed(0)}/100" style="background:color-mix(in srgb, ${d3.interpolateRdYlGn(s / 100)} 28%, transparent)">${c.f(r.raw[c.k], r.d)}</td>`;
