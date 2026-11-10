@@ -127,6 +127,7 @@ th.sorted::after { content: " ▾"; }
 
     <section class="card">
       <h2>All the numbers (click a column to sort)</h2>
+      <div class="presets" id="tblgroups" style="margin-bottom:8px"></div>
       <div class="scroll"><table id="tbl"></table></div>
     </section>
 
@@ -142,6 +143,14 @@ th.sorted::after { content: " ▾"; }
         <li><b>Living standards:</b> schools are Niche district grades turned into 0–100 (A+ = 97). Life expectancy is the County Health Rankings county figure (approximate, ±1 yr). Healthcare is my 1–5 rating of major academic or cancer centres nearby (e.g. Mayo Jacksonville, MD Anderson Houston, Duke/UNC Raleigh).</li>
         <li><b>Politics:</b> 2024 presidential Trump share. Unofficial Nov 2026 results: Democrats won the TX and GA governorships and flipped the NC House and both Arizona chambers, and the Utah GOP lost its House supermajority. FL, TN, SC and ID stayed firmly Republican.</li>
         <li><b>Travel:</b> international airport = nonstop international destinations from the metro's main long-haul airport (San Jose uses SFO, NYC uses JFK, Naperville uses O'Hare), scored on a log scale so 100 vs 120 matters less than 0 vs 20. Domestic airport is a 1–22 rank by nonstop reach. <b>Red Hat office</b> = an office within commuting distance (Raleigh HQ, Atlanta, Plano, N. Charleston, Santa Clara, Boston, Tysons).</li>
+        <li><b>New in Nov 2026</b> (full tables and sources in the research document, section 11):
+          <b>cost of owning</b> = property tax after homestead + home insurance + expected flood cost + HOA for the typical home (Texas MUD/PID fees not included, add $2–6k);
+          <b>4-bed home for $400–600k</b>, <b>dogs</b> (breed bans, insurer breed rules, HOA limits, heat), <b>founder fit</b> and <b>startup ecosystem</b> are 1–5 researcher ratings from sourced figures;
+          <b>Waldorf</b> = schools within ~30 min (capped at 4) + 3 if a tuition-free public Waldorf charter is in reach;
+          <b>school money</b> = state ESA/voucher per child in 2026–27; Texas is counted at half because the governor-elect has pledged to end it, and several states give a ~$260k household low priority;
+          <b>community</b> = JEC county Social Capital Index; <b>momentum</b> = average of scaled net domestic migration (2025), IRS net income moving in per person and 12-month job growth;
+          <b>reliable power</b> = 2024 utility outage minutes (log scale; 2024 hurricanes inflate Houston, Tampa, Greenville, Charleston); <b>homelessness</b> = HUD 2025 count per 10k (log scale);
+          <b>Republican-run state from 2027</b> = 1 for a Republican governor and legislature, 0.33 for TX, GA and NC (Democratic governor and House, Republican Senate), 0 for Democratic control.</li>
         <li><b>Hazard:</b> FEMA National Risk Index county rating (1 = very low, 5 = very high). Florida home insurance ($2.8–6k/yr) isn't in the house price.</li>
       </ul>
     </section>
@@ -156,10 +165,12 @@ const fmtK = v => (v < 0 ? "−$" : "$") + (Math.abs(v) / 1000).toFixed(0) + "k"
 const GROUPS = {
   money:    { label: "Money",            color: "#2a6fdb" },
   living:   { label: "Living standards", color: "#8e5bd8" },
+  family:   { label: "Kids, house & dogs", color: "#c2185b" },
   safety:   { label: "Safety",           color: "#d1495b" },
   life:     { label: "Lifestyle",        color: "#1aa39a" },
   driving:  { label: "Driving",          color: "#e08a1e" },
   travel:   { label: "Travel & work",    color: "#5f6b7a" },
+  economy:  { label: "Startups & economy", color: "#2e7d32" },
   politics: { label: "Politics",         color: "#b5651d" },
 };
 const S = () => document.getElementById("scen").value;
@@ -170,35 +181,57 @@ const CRIT = [
   { k: "money",   g: "money",   label: "Money left vs Singapore / yr", get: d => d["delta_" + S()], hi: true, f: fmt$ },
   { k: "home",    g: "money",   label: "House price (low = good)",     get: d => d.home, hi: false, f: fmtK },
   { k: "rpp",     g: "money",   label: "Everyday prices (RPP)",        get: d => d.rpp, hi: false, f: v => v.toFixed(1) },
+  { k: "own",     g: "money",   label: "Cost of owning: property tax, insurance, HOA (low = good)", get: d => d.own_cost, hi: false, f: fmtK },
+  { k: "autoins", g: "money",   label: "Car insurance (low = good)",   get: d => d.auto_ins, hi: false, f: v => "$" + v.toLocaleString() },
   { k: "schools", g: "living",  label: "School quality",               get: d => d.schools, hi: true, f: v => v },
   { k: "life",    g: "living",  label: "Life expectancy",              get: d => d.life_exp, hi: true, f: v => v.toFixed(1) },
   { k: "health",  g: "living",  label: "Top hospitals nearby",         get: d => d.health, hi: true, f: v => v + "/5" },
+  { k: "kidshosp",g: "living",  label: "Children's hospital (drive, low = good)", get: d => Math.min(d.kids_hosp, 120), hi: false, f: (v, d) => d.kids_hosp + " min" },
+  { k: "air",     g: "living",  label: "Clean air (bad-air days, low = good)", get: d => d.bad_air, hi: false, f: v => v + " d" },
+  { k: "waldorf", g: "family",  label: "Waldorf schools (free charter counts extra)", get: d => d.waldorf, hi: true, f: (v, d) => d.waldorf_n + (d.waldorf_free ? " · free" : "") },
+  { k: "choice",  g: "family",  label: "State money for private school / child", get: d => d.school_choice_adj, hi: true, f: (v, d) => "$" + (d.school_choice / 1000).toFixed(1) + "k" + (d.school_choice_adj < d.school_choice ? " at risk" : "") },
+  { k: "budget",  g: "family",  label: "Good 4-bed home for $400–600k", get: d => d.budget_fit, hi: true, f: v => v + "/5" },
+  { k: "social",  g: "family",  label: "Close-knit community",         get: d => d.social, hi: true, f: v => (v > 0 ? "+" : "") + v.toFixed(2) },
+  { k: "dogs",    g: "family",  label: "Good for two Dobermans",       get: d => d.dogs, hi: true, f: v => v + "/5" },
   { k: "violent", g: "safety",  label: "Violent crime (low = good)",   get: d => d.violent, hi: false, f: v => Math.round(v) },
   { k: "property",g: "safety",  label: "Property crime (low = good)",  get: d => d.property, hi: false, f: v => Math.round(v).toLocaleString() },
+  { k: "homeless",g: "safety",  label: "Little homelessness",          get: d => Math.log10(d.homeless), hi: false, f: (v, d) => d.homeless.toFixed(1) + " /10k" },
   { k: "beach",   g: "life",    label: "Close to the ocean",           get: d => d.beach_mi, hi: false, f: v => v + " mi",
     score: v => 100 * (1 - Math.sqrt(Math.min(v, 400) / 400)) },
   { k: "conv",    g: "life",    label: "City convenience",             get: d => 0.6 * d.walk + 0.4 * (Math.log10(d.metro_m * 1e6) - 5.8) / (7.3 - 5.8) * 100, hi: true, f: v => v.toFixed(0) },
   { k: "climate", g: "life",    label: "Mild climate",                 get: climatePenalty, hi: false, f: v => v.toFixed(0) + "° off" },
   { k: "hazard",  g: "life",    label: "Low natural-disaster risk",    get: d => d.nri, hi: false, f: v => ["", "very low", "rel. low", "moderate", "rel. high", "very high"][v] },
+  { k: "muggy",   g: "life",    label: "Few muggy days",               get: d => d.muggy, hi: false, f: v => v + " d" },
+  { k: "outdoors",g: "life",    label: "Mountains, lakes, hiking",     get: d => d.outdoors, hi: true, f: v => v + "/5" },
+  { k: "water",   g: "life",    label: "Secure water supply",          get: d => d.water, hi: false, f: v => v + "/5 risk" },
+  { k: "culture", g: "life",    label: "Food, culture, international feel", get: d => d.culture, hi: true, f: v => v + "/5" },
+  { k: "power",   g: "life",    label: "Reliable power (outage min/yr)", get: d => Math.log10(d.outage), hi: false, f: (v, d) => d.outage.toLocaleString() + " min" },
   { k: "traffic", g: "driving", label: "Light traffic",                get: d => d.inrix, hi: false, f: (v, d) => v + " h" + (d && d.inrix_est ? " est" : "") },
   { k: "roads",   g: "driving", label: "Road safety",                  get: d => d.iihs_vmt, hi: false, f: v => v.toFixed(2) },
   { k: "snow",    g: "driving", label: "Little snow / ice",            get: d => d.snow, hi: false, f: v => v + " in" },
+  { k: "commute", g: "driving", label: "Short commutes",               get: d => d.commute, hi: false, f: v => v + " min" },
   { k: "intl",    g: "travel",  label: "International airport",        get: d => Math.log1p(d.intl), hi: true, f: (v, d) => d.intl + " intl" },
   { k: "domestic",g: "travel",  label: "Domestic airport",             get: d => d.dom_rank, hi: false, f: v => "#" + v },
   { k: "redhat",  g: "travel",  label: "Red Hat office nearby",        get: d => d.redhat, hi: true, f: v => v ? "yes" : "no" },
-  { k: "cons",    g: "politics",label: "Conservative-leaning",         get: d => POL() === "state" ? d.state_trump : d.trump, hi: true, f: v => v.toFixed(1) + "%" },
+  { k: "eco",     g: "economy", label: "Startup & VC ecosystem",       get: d => d.ecosystem, hi: true, f: v => v + "/5" },
+  { k: "founder", g: "economy", label: "Healthtech founder fit",       get: d => d.founder, hi: true, f: v => v + "/5" },
+  { k: "momentum",g: "economy", label: "Booming: people, money, jobs moving in", get: d => d.momentum, hi: true, f: (v, d) => d.momentum_verdict.split(/[ ,(]/)[0] },
+  { k: "cons",    g: "politics",label: "Conservative-leaning voters",  get: d => POL() === "state" ? d.state_trump : d.trump, hi: true, f: v => v.toFixed(1) + "%" },
+  { k: "gov",     g: "politics",label: "Republican-run state from 2027", get: d => d.gov2027, hi: true, f: v => v === 1 ? "R" : v > 0 ? "split" : "D" },
 ];
 
-const PRESETS = {
-  "Balanced":            { money: 12, home: 10, rpp: 3, schools: 6, life: 3, health: 4, violent: 8, property: 4, beach: 9, conv: 6, climate: 4, hazard: 3, traffic: 4, roads: 4, snow: 3, intl: 5, domestic: 5, redhat: 2, cons: 5 },
-  "Money first":         { money: 30, home: 20, rpp: 8, schools: 4, life: 2, health: 2, violent: 6, property: 3, beach: 4, conv: 3, climate: 2, hazard: 2, traffic: 2, roads: 2, snow: 1, intl: 2, domestic: 3, redhat: 1, cons: 3 },
-  "Beach life":          { money: 10, home: 12, rpp: 2, schools: 4, life: 2, health: 3, violent: 8, property: 4, beach: 22, conv: 6, climate: 8, hazard: 2, traffic: 3, roads: 3, snow: 4, intl: 2, domestic: 3, redhat: 0, cons: 2 },
-  "Family & safety":     { money: 10, home: 10, rpp: 2, schools: 14, life: 5, health: 6, violent: 16, property: 8, beach: 4, conv: 3, climate: 3, hazard: 4, traffic: 3, roads: 5, snow: 2, intl: 2, domestic: 2, redhat: 0, cons: 1 },
-  "Conservative & cheap":{ money: 14, home: 16, rpp: 5, schools: 6, life: 2, health: 2, violent: 8, property: 4, beach: 6, conv: 3, climate: 3, hazard: 3, traffic: 3, roads: 3, snow: 2, intl: 2, domestic: 2, redhat: 0, cons: 16 },
-  "Well connected":      { money: 12, home: 8, rpp: 2, schools: 5, life: 2, health: 3, violent: 7, property: 3, beach: 6, conv: 5, climate: 3, hazard: 2, traffic: 3, roads: 3, snow: 2, intl: 15, domestic: 15, redhat: 2, cons: 2 },
-};
-let W = { ...PRESETS["Balanced"] };
-let sel = null, activePreset = "Balanced", sortKey = "total";
+const PRESETS = Object.fromEntries(Object.entries({
+  "Our family":          { money: 9, home: 4, own: 5, autoins: 1, rpp: 2, schools: 6, life: 2, health: 3, kidshosp: 3, air: 2, waldorf: 6, choice: 2, budget: 6, social: 3, dogs: 4, violent: 6, property: 3, homeless: 2, beach: 4, conv: 2, climate: 2, hazard: 2, muggy: 2, outdoors: 2, water: 1, culture: 2, power: 1, traffic: 2, roads: 1, snow: 1, commute: 1, intl: 3, domestic: 2, redhat: 1, eco: 4, founder: 4, momentum: 2, cons: 2, gov: 3 },
+  "Balanced":            { money: 10, home: 6, own: 3, autoins: 1, rpp: 2, schools: 5, life: 2, health: 3, kidshosp: 2, air: 2, waldorf: 2, choice: 1, budget: 3, social: 2, dogs: 1, violent: 6, property: 3, homeless: 2, beach: 6, conv: 4, climate: 3, hazard: 2, muggy: 2, outdoors: 2, water: 1, culture: 2, power: 1, traffic: 3, roads: 2, snow: 2, commute: 1, intl: 4, domestic: 3, redhat: 1, eco: 2, founder: 1, momentum: 2, cons: 3, gov: 2 },
+  "Money first":         { money: 28, home: 14, own: 8, autoins: 3, rpp: 7, schools: 4, life: 1, health: 2, violent: 5, property: 3, beach: 3, conv: 2, climate: 2, hazard: 2, traffic: 2, roads: 1, snow: 1, intl: 2, domestic: 2, budget: 4, momentum: 2, cons: 2, gov: 2 },
+  "Beach life":          { money: 9, home: 9, own: 4, rpp: 2, schools: 4, life: 2, health: 3, violent: 7, property: 3, beach: 20, conv: 5, climate: 7, hazard: 2, muggy: 3, culture: 3, traffic: 3, roads: 2, snow: 4, intl: 2, domestic: 2, cons: 2, gov: 2 },
+  "Family & safety":     { money: 8, home: 5, own: 3, rpp: 2, schools: 12, life: 4, health: 4, kidshosp: 5, air: 3, waldorf: 6, choice: 3, budget: 5, social: 5, dogs: 2, violent: 12, property: 6, homeless: 3, hazard: 3, power: 2, roads: 4, commute: 2, intl: 1, domestic: 1, gov: 1 },
+  "Conservative & cheap":{ money: 12, home: 12, own: 6, autoins: 2, rpp: 4, schools: 5, life: 2, health: 2, violent: 7, property: 3, homeless: 2, beach: 4, conv: 2, climate: 2, hazard: 2, traffic: 2, roads: 2, snow: 1, intl: 2, domestic: 2, budget: 4, cons: 10, gov: 10 },
+  "Well connected":      { money: 10, home: 6, own: 2, rpp: 2, schools: 5, life: 2, health: 3, violent: 6, property: 3, beach: 5, conv: 5, climate: 3, hazard: 2, culture: 3, traffic: 3, roads: 2, snow: 2, intl: 14, domestic: 14, redhat: 2, eco: 3, cons: 1, gov: 1 },
+  "Founder & startups":  { money: 10, home: 6, own: 3, rpp: 2, schools: 5, life: 2, health: 3, kidshosp: 2, budget: 4, violent: 5, property: 2, conv: 3, culture: 3, traffic: 2, intl: 6, domestic: 5, eco: 16, founder: 16, momentum: 5 },
+}).map(([n, w]) => [n, Object.fromEntries(CRIT.map(c => [c.k, w[c.k] || 0]))]));
+let W = { ...PRESETS["Our family"] };
+let sel = null, activePreset = "Our family", sortKey = "total", tblGroup = "family";
 
 function norm100(w) {
   const t = Object.values(w).reduce((a, b) => a + b, 0) || 1;
@@ -390,6 +423,14 @@ function renderDetail(res) {
       <div><span>Intl nonstops</span> ${d.intl}</div>
       <div><span>Trump 2024</span> county ${d.trump}% · state ${d.state_trump}%</div>
       <div><span>Schools / life exp.</span> ${d.schools} / ${d.life_exp} yrs</div>
+      <div><span>Owning cost / yr</span> ${fmt$(d.own_cost)} · car ins. ${fmt$(d.auto_ins)}</div>
+      <div><span>4-bed median</span> ${d.median_4br ? fmt$(d.median_4br) : "n/a"} · fit ${d.budget_fit}/5</div>
+      <div><span>Waldorf</span> ${d.waldorf_n}${d.waldorf_free ? " incl. free charter" : ""} · school $ ${fmt$(d.school_choice)}</div>
+      <div><span>Children's hospital</span> ${d.kids_hosp} min</div>
+      <div><span>Startups / founder / dogs</span> ${d.ecosystem} / ${d.founder} / ${d.dogs} of 5</div>
+      <div><span>Momentum</span> ${d.momentum_verdict} · migration ${d.mig_rate > 0 ? "+" : ""}${d.mig_rate}/1k</div>
+      <div><span>Muggy / bad-air days</span> ${d.muggy} / ${d.bad_air}</div>
+      <div><span>State from 2027</span> ${d.gov2027 === 1 ? "Republican" : d.gov2027 > 0 ? "split (D governor)" : "Democratic"}</div>
     </div>`;
 }
 
@@ -405,7 +446,11 @@ function renderTop3(res) {
 }
 
 function renderTable(res) {
-  const cols = [{ k: "name", label: "Place" }, { k: "total", label: "Score" }, ...CRIT.map(c => ({ k: c.k, label: c.label.replace(/ \(.*\)/, ""), c }))];
+  const shown = CRIT.filter(c => tblGroup === "all" || c.g === tblGroup);
+  document.getElementById("tblgroups").innerHTML = ["all", ...Object.keys(GROUPS)].map(g =>
+    `<button data-g="${g}" class="${g === tblGroup ? "on" : ""}">${g === "all" ? "All" : GROUPS[g].label}</button>`).join("");
+  document.querySelectorAll("#tblgroups button").forEach(b => b.onclick = () => { tblGroup = b.dataset.g; renderTable(res); });
+  const cols = [{ k: "name", label: "Place" }, { k: "total", label: "Score" }, ...shown.map(c => ({ k: c.k, label: c.label.replace(/ \(.*\)/, "").replace(/:.*/, ""), c }))];
   const rows = [...res].sort((a, b) => {
     if (sortKey === "name") return a.d.name.localeCompare(b.d.name);
     if (sortKey === "total") return b.total - a.total;
@@ -414,7 +459,7 @@ function renderTable(res) {
   let h = "<thead><tr>" + cols.map(c => `<th data-k="${c.k}" class="${sortKey === c.k ? "sorted" : ""}" title="${c.c ? (W[c.k].toFixed(1) + "% weight") : ""}">${c.label}${c.c ? `<br><span class="est">${W[c.k].toFixed(1)}%</span>` : ""}</th>`).join("") + "</tr></thead><tbody>";
   for (const r of rows) {
     h += `<tr><td>${r.rank}. ${r.d.name}</td><td><span class="cell-bar" style="width:${r.total * .25}px;background:${colour(r.total)}"></span><b>${r.total.toFixed(1)}</b></td>`;
-    for (const c of CRIT) {
+    for (const c of shown) {
       const s = r.s[c.k];
       h += `<td title="score ${s.toFixed(0)}/100" style="background:color-mix(in srgb, ${d3.interpolateRdYlGn(s / 100)} 28%, transparent)">${c.f(r.raw[c.k], r.d)}</td>`;
     }
