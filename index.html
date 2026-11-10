@@ -189,7 +189,7 @@ const CRIT = [
   { k: "kidshosp",g: "living",  label: "Children's hospital (drive, low = good)", get: d => Math.min(d.kids_hosp, 120), hi: false, f: (v, d) => d.kids_hosp + " min" },
   { k: "air",     g: "living",  label: "Clean air (bad-air days, low = good)", get: d => d.bad_air, hi: false, f: v => v + " d" },
   { k: "waldorf", g: "family",  label: "Waldorf schools (free charter counts extra)", get: d => d.waldorf, hi: true, f: (v, d) => d.waldorf_n + (d.waldorf_free ? " · free" : "") },
-  { k: "choice",  g: "family",  label: "State money for private school / child", get: d => d.school_choice_adj, hi: true, f: (v, d) => "$" + (d.school_choice / 1000).toFixed(1) + "k" + (d.school_choice_adj < d.school_choice ? " at risk" : "") },
+  { k: "choice",  g: "family",  label: "State money for private school / child", get: d => d.school_choice_adj, hi: true, f: (v, d) => d.school_choice === 0 ? "none" : "$" + (d.school_choice / 1000).toFixed(1) + "k" + (d.school_choice_adj < d.school_choice ? " at risk" : "") },
   { k: "budget",  g: "family",  label: "Good 4-bed home for $400–600k", get: d => d.budget_fit, hi: true, f: v => v + "/5" },
   { k: "social",  g: "family",  label: "Close-knit community",         get: d => d.social, hi: true, f: v => (v > 0 ? "+" : "") + v.toFixed(2) },
   { k: "dogs",    g: "family",  label: "Good for two Dobermans",       get: d => d.dogs, hi: true, f: v => v + "/5" },
