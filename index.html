@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where to live in the US: decision board</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script src="data.js"></script>
+<script src="states.js"></script>
+<style>
+:root {
+  --fg: var(--color-text-primary, #1d2330);
+  --bg: var(--color-background-primary, #ffffff);
+  --line: var(--color-border-primary, #d9dde5);
+  --muted: color-mix(in srgb, var(--fg) 60%, transparent);
+  --soft: color-mix(in srgb, var(--fg) 5%, var(--bg));
+  --accent: #2a6fdb;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font-sans, system-ui, -apple-system, sans-serif); color: var(--fg); background: var(--bg); font-size: 14px; }
+header { padding: 16px 20px 8px; }
+h1 { font-size: 20px; margin: 0 0 4px; }
+h2 { font-size: 15px; margin: 0 0 8px; }
+h3 { font-size: 12px; margin: 14px 0 6px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.sub { color: var(--muted); margin: 0; }
+.layout { display: grid; grid-template-columns: 330px 1fr; gap: 16px; padding: 8px 20px 20px; }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+.card { border: 1px solid var(--line); border-radius: 10px; padding: 14px; background: var(--bg); }
+.controls { position: sticky; top: 8px; align-self: start; max-height: calc(100vh - 16px); overflow-y: auto; }
+.row { display: grid; grid-template-columns: 1fr 44px; gap: 2px 8px; align-items: center; margin: 6px 0; }
+.row label { font-size: 13px; }
+.row .pct { text-align: right; font-variant-numeric: tabular-nums; font-size: 12px; color: var(--muted); }
+.row input[type=range] { grid-column: 1 / 3; width: 100%; accent-color: var(--accent); margin: 0; }
+.row.zero label { color: var(--muted); }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+button, select { font: inherit; font-size: 12px; color: var(--fg); background: var(--soft); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+.toggles { display: grid; gap: 6px; font-size: 13px; margin-bottom: 6px; }
+.toggles label { display: flex; gap: 6px; align-items: center; }
+.main { display: grid; gap: 16px; min-width: 0; }
+.top3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (max-width: 600px) { .top3 { grid-template-columns: 1fr; } }
+.pick { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+.pick .rank { font-size: 12px; color: var(--muted); }
+.pick .nm { font-size: 16px; font-weight: 600; }
+.pick .sc { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pick .why { font-size: 12px; color: var(--muted); }
+.two { display: grid; grid-template-columns: 1.25fr 1fr; gap: 16px; }
+@media (max-width: 1200px) { .two { grid-template-columns: 1fr; } }
+#map svg { width: 100%; height: auto; display: block; }
+#map .state { fill: var(--soft); stroke: var(--line); stroke-width: .7; }
+#map .city { stroke: var(--bg); stroke-width: 1.5; cursor: pointer; }
+#map .city.sel { stroke: var(--fg); stroke-width: 2.5; }
+#map text { font-size: 11px; fill: var(--fg); paint-order: stroke; stroke: var(--bg); stroke-width: 3px; pointer-events: none; }
+.legend { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-top: 6px; }
+.legend .bar { height: 10px; width: 160px; border-radius: 3px; background: linear-gradient(90deg, #d7301f, #fdae61, #ffffbf, #a6d96a, #1a9850); }
+#rank { height: 560px; }
+#radar { height: 300px; }
+table { border-collapse: collapse; width: 100%; font-size: 12px; font-variant-numeric: tabular-nums; }
+th, td { padding: 5px 6px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: var(--bg); }
+th { cursor: pointer; font-weight: 600; user-select: none; }
+th.sorted::after { content: " ▾"; }
+.scroll { overflow-x: auto; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px; font-size: 13px; }
+.detail-grid div span { color: var(--muted); }
+.est { color: var(--muted); font-size: 11px; }
+.notes { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.notes li { margin-bottom: 4px; }
+.cell-bar { display: inline-block; height: 8px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Where in the US should we live?</h1>
+  <p class="sub">22 places, 19 criteria. Move a slider and the other weights rebalance, so the total stays 100%. The ranking, map and table all update as you go. Each criterion is scored 0–100 across the 22 places (100 = best of the group).</p>
+</header>
+
+<div class="layout">
+  <aside class="card controls" aria-label="Weights">
+    <h2>What matters to you</h2>
+    <div class="presets" id="presets" role="group" aria-label="Presets"></div>
+    <div class="toggles">
+      <label><input type="checkbox" id="balance" checked> Keep the total at 100% (other sliders adjust)</label>
+      <label>Pay:
+        <select id="scen" aria-label="Pay scenario">
+          <option value="A">A: $257.9k everywhere</option>
+          <option value="B">B: plus zone uplift (NYC +20%, Boston +15%, Seattle/NoVA/Naperville +10%)</option>
+        </select>
+      </label>
+      <label>Politics:
+        <select id="pol" aria-label="Politics measure">
+          <option value="county">County (2024 Trump %)</option>
+          <option value="state">State (2024 Trump %)</option>
+        </select>
+      </label>
+    </div>
+    <div id="sliders"></div>
+    <p class="notes">Want to rule a criterion out? Set it to 0. Every number behind these scores is in the table below.</p>
+  </aside>
+
+  <main class="main">
+    <section class="top3" id="top3" aria-live="polite"></section>
+
+    <section class="two">
+      <div class="card">
+        <h2>Map: colour and size show the overall score</h2>
+        <div id="map" role="img" aria-label="US map with the 22 places coloured by score"></div>
+        <div class="legend"><span>worse</span><span class="bar"></span><span>better</span><span style="margin-left:auto">Click a dot for details</span></div>
+      </div>
+      <div class="card">
+        <h2 id="detail-title">Details</h2>
+        <div id="radar" role="img" aria-label="Radar of category scores for the selected place"></div>
+        <div id="detail"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Ranking: where each place's score comes from</h2>
+      <div id="rank" role="img" aria-label="Stacked bar chart of overall score by category"></div>
+    </section>
+
+    <section class="card">
+      <h2>All the numbers (click a column to sort)</h2>
+      <div class="scroll"><table id="tbl"></table></div>
+    </section>
+
+    <section class="card notes">
+      <h2 style="color:var(--fg)">Method, sources and caveats</h2>
+      <ul>
+        <li><b>Scoring:</b> each criterion is min-max scaled to 0–100 across the 22 places, flipped where lower is better. The overall score is the weighted average. Beach distance uses a square-root curve: the first 50 miles count most, and anything past 400 mi scores 0. Climate counts degrees above an 88°F July high plus degrees below a 35°F January low. Convenience is 60% Walk Score of the family area and 40% metro size (log).</li>
+        <li><b>Money left vs Singapore:</b> yearly US take-home on $257.9k (MFJ, 1 child), minus the full family budget (rent, 2 cars, groceries, eating out, utilities, healthcare, Waldorf/kindergarten), plus the 401(k) match. That's compared with Singapore savings of about $121k on S$330k (EP, no CPF). Taken from opportunity_cost.py / section 08. Every place is negative, so a higher score means "least worse off".</li>
+        <li><b>House price:</b> Zillow ZHVI (Sep 2026) for the family area shown (e.g. Frisco, Cary, Lehi), not the core city. <b>Everyday prices:</b> BEA Regional Price Parity 2024.</li>
+        <li><b>Crime:</b> FBI UCR / city police data, per 100k, for the same family area. Several suburb figures come via sites that republish FBI data (OpenCrime, AreaVibes). Jacksonville uses Duval city rates because there's no reliable St. Johns figure. Orlando's property crime is estimated.</li>
+        <li><b>Beach:</b> straight-line miles to the nearest sea coast, computed from the Natural Earth 1:50m coastline (Great Lakes excluded). Where that point is a bay or tidal river (Potomac, Pamlico Sound, Galveston Bay, Tampa Bay, SF Bay), the distance to the nearest real ocean beach is used instead (estimated). Seattle's 2 mi is Puget Sound salt water; the Pacific beaches are about 110 mi away. Phoenix's nearest sea is the Gulf of California (Mexico).</li>
+        <li><b>Driving:</b> traffic is INRIX 2025 Global Traffic Scorecard, hours lost per driver. Places outside INRIX's US top 25 (under 41 h) are estimated and marked est. Road safety is IIHS 2024 deaths per 100M vehicle miles, by state. Snow is the NOAA 1991–2020 normal annual snowfall, rounded.</li>
+        <li><b>Living standards:</b> schools are Niche district grades turned into 0–100 (A+ = 97). Life expectancy is the County Health Rankings county figure (approximate, ±1 yr). Healthcare is my 1–5 rating of major academic or cancer centres nearby (e.g. Mayo Jacksonville, MD Anderson Houston, Duke/UNC Raleigh).</li>
+        <li><b>Politics:</b> 2024 presidential Trump share. Unofficial Nov 2026 results: Democrats won the TX and GA governorships and flipped the NC House and both Arizona chambers, and the Utah GOP lost its House supermajority. FL, TN, SC and ID stayed firmly Republican.</li>
+        <li><b>Travel:</b> fastest regular itinerary to Singapore in hours (nonstop SJC/SEA/NYC; Greenville is estimated). Domestic airport is a 1–22 rank by nonstop reach. <b>Red Hat office</b> = an office within commuting distance (Raleigh HQ, Atlanta, Plano, N. Charleston, Santa Clara, Boston, Tysons).</li>
+        <li><b>Hazard:</b> FEMA National Risk Index county rating (1 = very low, 5 = very high). Florida home insurance ($2.8–6k/yr) isn't in the house price.</li>
+      </ul>
+    </section>
+  </main>
+</div>
+
+<script>
+const D = window.CITY_DATA;
+const fmt$ = v => (v < 0 ? "−$" : "$") + Math.abs(Math.round(v)).toLocaleString("en-US");
+const fmtK = v => (v < 0 ? "−$" : "$") + (Math.abs(v) / 1000).toFixed(0) + "k";
+
+const GROUPS = {
+  money:    { label: "Money",            color: "#2a6fdb" },
+  living:   { label: "Living standards", color: "#8e5bd8" },
+  safety:   { label: "Safety",           color: "#d1495b" },
+  life:     { label: "Lifestyle",        color: "#1aa39a" },
+  driving:  { label: "Driving",          color: "#e08a1e" },
+  travel:   { label: "Travel & work",    color: "#5f6b7a" },
+  politics: { label: "Politics",         color: "#b5651d" },
+};
+const S = () => document.getElementById("scen").value;
+const POL = () => document.getElementById("pol").value;
+const climatePenalty = d => Math.max(0, d.jul_hi - 88) + Math.max(0, 35 - d.jan_lo);
+
+const CRIT = [
+  { k: "money",   g: "money",   label: "Money left vs Singapore / yr", get: d => d["delta_" + S()], hi: true, f: fmt$ },
+  { k: "home",    g: "money",   label: "House price (low = good)",     get: d => d.home, hi: false, f: fmtK },
+  { k: "rpp",     g: "money",   label: "Everyday prices (RPP)",        get: d => d.rpp, hi: false, f: v => v.toFixed(1) },
+  { k: "schools", g: "living",  label: "School quality",               get: d => d.schools, hi: true, f: v => v },
+  { k: "life",    g: "living",  label: "Life expectancy",              get: d => d.life_exp, hi: true, f: v => v.toFixed(1) },
+  { k: "health",  g: "living",  label: "Top hospitals nearby",         get: d => d.health, hi: true, f: v => v + "/5" },
+  { k: "violent", g: "safety",  label: "Violent crime (low = good)",   get: d => d.violent, hi: false, f: v => Math.round(v) },
+  { k: "property",g: "safety",  label: "Property crime (low = good)",  get: d => d.property, hi: false, f: v => Math.round(v).toLocaleString() },
+  { k: "beach",   g: "life",    label: "Close to the ocean",           get: d => d.beach_mi, hi: false, f: v => v + " mi",
+    score: v => 100 * (1 - Math.sqrt(Math.min(v, 400) / 400)) },
+  { k: "conv",    g: "life",    label: "City convenience",             get: d => 0.6 * d.walk + 0.4 * (Math.log10(d.metro_m * 1e6) - 5.8) / (7.3 - 5.8) * 100, hi: true, f: v => v.toFixed(0) },
+  { k: "climate", g: "life",    label: "Mild climate",                 get: climatePenalty, hi: false, f: v => v.toFixed(0) + "° off" },
+  { k: "hazard",  g: "life",    label: "Low natural-disaster risk",    get: d => d.nri, hi: false, f: v => ["", "very low", "rel. low", "moderate", "rel. high", "very high"][v] },
+  { k: "traffic", g: "driving", label: "Light traffic",                get: d => d.inrix, hi: false, f: (v, d) => v + " h" + (d && d.inrix_est ? " est" : "") },
+  { k: "roads",   g: "driving", label: "Road safety",                  get: d => d.iihs_vmt, hi: false, f: v => v.toFixed(2) },
+  { k: "snow",    g: "driving", label: "Little snow / ice",            get: d => d.snow, hi: false, f: v => v + " in" },
+  { k: "asia",    g: "travel",  label: "Fast trips to Singapore",      get: d => d.sg_hours, hi: false, f: v => v + " h" },
+  { k: "domestic",g: "travel",  label: "Domestic airport",             get: d => d.dom_rank, hi: false, f: v => "#" + v },
+  { k: "redhat",  g: "travel",  label: "Red Hat office nearby",        get: d => d.redhat, hi: true, f: v => v ? "yes" : "no" },
+  { k: "cons",    g: "politics",label: "Conservative-leaning",         get: d => POL() === "state" ? d.state_trump : d.trump, hi: true, f: v => v.toFixed(1) + "%" },
+];
+
+const PRESETS = {
+  "Balanced":            { money: 12, home: 10, rpp: 3, schools: 6, life: 3, health: 4, violent: 8, property: 4, beach: 9, conv: 6, climate: 4, hazard: 3, traffic: 4, roads: 4, snow: 3, asia: 7, domestic: 3, redhat: 2, cons: 5 },
+  "Money first":         { money: 30, home: 20, rpp: 8, schools: 4, life: 2, health: 2, violent: 6, property: 3, beach: 4, conv: 3, climate: 2, hazard: 2, traffic: 2, roads: 2, snow: 1, asia: 4, domestic: 1, redhat: 1, cons: 3 },
+  "Beach life":          { money: 10, home: 12, rpp: 2, schools: 4, life: 2, health: 3, violent: 8, property: 4, beach: 22, conv: 6, climate: 8, hazard: 2, traffic: 3, roads: 3, snow: 4, asia: 4, domestic: 1, redhat: 0, cons: 2 },
+  "Family & safety":     { money: 10, home: 10, rpp: 2, schools: 14, life: 5, health: 6, violent: 16, property: 8, beach: 4, conv: 3, climate: 3, hazard: 4, traffic: 3, roads: 5, snow: 2, asia: 3, domestic: 1, redhat: 0, cons: 1 },
+  "Conservative & cheap":{ money: 14, home: 16, rpp: 5, schools: 6, life: 2, health: 2, violent: 8, property: 4, beach: 6, conv: 3, climate: 3, hazard: 3, traffic: 3, roads: 3, snow: 2, asia: 3, domestic: 1, redhat: 0, cons: 16 },
+  "Close to Singapore":  { money: 12, home: 8, rpp: 2, schools: 5, life: 2, health: 3, violent: 7, property: 3, beach: 6, conv: 5, climate: 3, hazard: 2, traffic: 3, roads: 3, snow: 2, asia: 25, domestic: 5, redhat: 2, cons: 2 },
+};
+let W = { ...PRESETS["Balanced"] };
+let sel = null, activePreset = "Balanced", sortKey = "total";
+
+function norm100(w) {
+  const t = Object.values(w).reduce((a, b) => a + b, 0) || 1;
+  const o = {}; for (const k in w) o[k] = w[k] * 100 / t; return o;
+}
+W = norm100(W);
+
+// ---------- scoring
+function scoreAll() {
+  const res = D.map(d => ({ d, s: {}, raw: {} }));
+  for (const c of CRIT) {
+    const vals = D.map(c.get);
+    const mn = Math.min(...vals), mx = Math.max(...vals);
+    res.forEach((r, i) => {
+      const v = vals[i]; r.raw[c.k] = v;
+      let s = c.score ? c.score(v) : (mx === mn ? 50 : (v - mn) / (mx - mn) * 100);
+      if (!c.score && !c.hi) s = 100 - s;
+      r.s[c.k] = s;
+    });
+  }
+  const tw = Object.values(W).reduce((a, b) => a + b, 0) || 1;
+  res.forEach(r => {
+    r.g = {}; r.gs = {};
+    for (const g in GROUPS) { r.g[g] = 0; }
+    const gw = {};
+    for (const c of CRIT) {
+      r.g[c.g] += r.s[c.k] * W[c.k] / tw;
+      gw[c.g] = (gw[c.g] || 0) + W[c.k];
+      r.gs[c.g] = (r.gs[c.g] || 0) + r.s[c.k] * W[c.k];
+    }
+    for (const g in GROUPS) {
+      // unweighted group average when the group has zero weight, so the radar stays readable
+      const cs = CRIT.filter(c => c.g === g);
+      r.gs[g] = gw[g] > 0 ? r.gs[g] / gw[g] : cs.reduce((a, c) => a + r.s[c.k], 0) / cs.length;
+    }
+    r.total = Object.values(r.g).reduce((a, b) => a + b, 0);
+  });
+  res.sort((a, b) => b.total - a.total);
+  res.forEach((r, i) => r.rank = i + 1);
+  return res;
+}
+
+// ---------- sliders
+function buildSliders() {
+  const box = document.getElementById("sliders"); box.innerHTML = "";
+  for (const g in GROUPS) {
+    const h = document.createElement("h3"); h.textContent = GROUPS[g].label;
+    h.style.color = GROUPS[g].color; box.appendChild(h);
+    for (const c of CRIT.filter(c => c.g === g)) {
+      const row = document.createElement("div"); row.className = "row"; row.id = "row-" + c.k;
+      row.innerHTML = `<label for="w-${c.k}">${c.label}</label><span class="pct" id="p-${c.k}"></span>
+        <input type="range" id="w-${c.k}" min="0" max="100" step="0.5" aria-label="${c.label} weight">`;
+      box.appendChild(row);
+      row.querySelector("input").addEventListener("input", e => onSlide(c.k, +e.target.value));
+    }
+  }
+  syncSliders();
+}
+function syncSliders() {
+  for (const c of CRIT) {
+    const v = W[c.k];
+    document.getElementById("w-" + c.k).value = v;
+    document.getElementById("p-" + c.k).textContent = v.toFixed(v < 10 ? 1 : 0) + "%";
+    document.getElementById("row-" + c.k).classList.toggle("zero", v < 0.05);
+  }
+}
+function onSlide(k, v) {
+  activePreset = null;
+  if (document.getElementById("balance").checked) {
+    v = Math.min(v, 100);
+    const others = CRIT.map(c => c.k).filter(x => x !== k);
+    const rest = others.reduce((a, x) => a + W[x], 0);
+    const target = 100 - v;
+    if (rest <= 1e-9) others.forEach(x => W[x] = target / others.length);
+    else others.forEach(x => W[x] = W[x] * target / rest);
+  }
+  W[k] = v;
+  render();
+}
+
+function buildPresets() {
+  const box = document.getElementById("presets"); box.innerHTML = "";
+  for (const name in PRESETS) {
+    const b = document.createElement("button"); b.textContent = name;
+    b.className = name === activePreset ? "on" : "";
+    b.onclick = () => { W = norm100({ ...PRESETS[name] }); activePreset = name; render(); };
+    box.appendChild(b);
+  }
+}
+
+// ---------- colour
+const colour = d3.scaleSequential(d3.interpolateRdYlGn);
+
+// ---------- map
+let mapSvg, proj;
+function buildMap() {
+  const topo = window.US_STATES;
+  const svg = d3.select("#map").append("svg").attr("viewBox", "0 0 975 610");
+  svg.append("g").selectAll("path").data(topojson.feature(topo, topo.objects.states).features)
+    .join("path").attr("class", "state").attr("d", d3.geoPath());
+  proj = d3.geoAlbersUsa().scale(1300).translate([487.5, 305]);
+  mapSvg = svg;
+  svg.append("g").attr("class", "cities");
+  svg.append("g").attr("class", "labels");
+}
+function renderMap(res) {
+  const mn = d3.min(res, r => r.total), mx = d3.max(res, r => r.total);
+  colour.domain([mn, mx]);
+  const g = mapSvg.select(".cities");
+  const ordered = [...res].sort((a, b) => a.total - b.total);
+  g.selectAll("circle").data(ordered, r => r.d.name).join("circle")
+    .attr("class", r => "city" + (sel === r.d.name ? " sel" : ""))
+    .attr("cx", r => proj([r.d.lon, r.d.lat])[0]).attr("cy", r => proj([r.d.lon, r.d.lat])[1])
+    .attr("r", r => 6 + 12 * (r.total - mn) / ((mx - mn) || 1))
+    .attr("fill", r => colour(r.total))
+    .on("click", (e, r) => { sel = r.d.name; render(); })
+    .selectAll("title").data(r => [r]).join("title").text(r => `#${r.rank} ${r.d.name}: ${r.total.toFixed(1)}`);
+  mapSvg.select(".cities").selectAll("circle").order();
+  const labelled = res.filter(r => r.rank <= 6 || r.d.name === sel);
+  mapSvg.select(".labels").selectAll("text").data(labelled, r => r.d.name).join("text")
+    .attr("x", r => proj([r.d.lon, r.d.lat])[0] + 10).attr("y", r => proj([r.d.lon, r.d.lat])[1] - 8)
+    .style("font-weight", r => r.rank <= 3 ? 700 : 400)
+    .text(r => `${r.rank}. ${r.d.name.replace(/ \(.*\)/, "")}`);
+}
+
+// ---------- charts
+const rankChart = echarts.init(document.getElementById("rank"));
+const radarChart = echarts.init(document.getElementById("radar"));
+rankChart.on("click", p => { sel = p.name; render(); });
+window.addEventListener("resize", () => { rankChart.resize(); radarChart.resize(); });
+const css = n => getComputedStyle(document.body).getPropertyValue(n).trim();
+
+function renderRank(res) {
+  const names = res.map(r => r.d.name).reverse();
+  const fg = css("--fg") || "#1d2330";
+  rankChart.setOption({
+    animationDurationUpdate: 300,
+    grid: { left: 150, right: 40, top: 30, bottom: 20 },
+    legend: { top: 0, textStyle: { color: fg, fontSize: 11 }, itemWidth: 12, itemHeight: 10 },
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow" },
+      formatter: ps => { const r = res.find(x => x.d.name === ps[0].name);
+        return `<b>#${r.rank} ${r.d.name}</b> · ${r.total.toFixed(1)}<br>` +
+          ps.filter(p => p.value > 0.05).map(p => `${p.marker}${p.seriesName}: ${p.value.toFixed(1)}`).join("<br>"); } },
+    xAxis: { type: "value", max: 100, axisLabel: { color: fg }, splitLine: { lineStyle: { opacity: .2 } } },
+    yAxis: { type: "category", data: names, axisLabel: { color: fg, fontSize: 11,
+      formatter: n => (n === sel ? "▶ " : "") + n } },
+    series: Object.entries(GROUPS).map(([g, m]) => ({
+      name: m.label, type: "bar", stack: "t", itemStyle: { color: m.color },
+      emphasis: { focus: "series" },
+      data: res.map(r => +r.g[g].toFixed(2)).reverse(),
+      label: g === "politics" ? { show: true, position: "right", color: fg, fontSize: 11,
+        formatter: p => res.find(x => x.d.name === p.name).total.toFixed(1) } : undefined,
+    })),
+  }, { replaceMerge: ["series"] });
+}
+
+function renderDetail(res) {
+  const r = res.find(x => x.d.name === sel) || res[0];
+  sel = r.d.name;
+  const d = r.d, fg = css("--fg") || "#1d2330";
+  document.getElementById("detail-title").textContent = `#${r.rank} ${d.name} · ${r.total.toFixed(1)} / 100`;
+  radarChart.setOption({
+    radar: { indicator: Object.values(GROUPS).map(m => ({ name: m.label, max: 100 })), radius: "62%",
+      axisName: { color: fg, fontSize: 11 }, splitLine: { lineStyle: { opacity: .3 } }, splitArea: { show: false } },
+    tooltip: {},
+    series: [{ type: "radar", data: [
+      { name: d.name, value: Object.keys(GROUPS).map(g => +r.gs[g].toFixed(0)), areaStyle: { opacity: .25 }, lineStyle: { color: "#2a6fdb" }, itemStyle: { color: "#2a6fdb" } },
+      { name: "Average of 22", value: Object.keys(GROUPS).map(g => +(d3.mean(res, x => x.gs[g])).toFixed(0)), lineStyle: { type: "dashed", color: "#999" }, itemStyle: { color: "#999" } },
+    ] }],
+  });
+  const strong = CRIT.filter(c => W[c.k] > 0.5).sort((a, b) => r.s[b.k] - r.s[a.k]);
+  const best = strong.slice(0, 3).map(c => c.label.replace(/ \(.*\)/, "")).join(", ");
+  const worst = strong.slice(-3).reverse().map(c => c.label.replace(/ \(.*\)/, "")).join(", ");
+  document.getElementById("detail").innerHTML = `
+    <p style="margin:4px 0 10px;font-size:13px">Family area: <b>${d.area}</b>, ${d.state} · pay zone ${d.zone} · nearest coast: ${d.coast}<br>
+    <span style="color:#1a9850">Strongest:</span> ${best}<br><span style="color:#d7301f">Weakest:</span> ${worst}</p>
+    <div class="detail-grid">
+      <div><span>Gross pay</span> ${fmt$(d["gross_" + S()])}</div>
+      <div><span>Take-home</span> ${fmt$(d["take_home_" + S()])}</div>
+      <div><span>Family budget</span> ${fmt$(d.budget)}</div>
+      <div><span>vs Singapore / yr</span> <b>${fmt$(d["delta_" + S()])}</b></div>
+      <div><span>Home value</span> ${fmt$(d.home)}</div>
+      <div><span>Beach</span> ${d.beach_mi} mi</div>
+      <div><span>Violent / property crime</span> ${Math.round(d.violent)} / ${Math.round(d.property).toLocaleString()}</div>
+      <div><span>Traffic</span> ${d.inrix} h/yr${d.inrix_est ? ' <span class="est">est</span>' : ""}</div>
+      <div><span>Road deaths</span> ${d.iihs_vmt} per 100M mi</div>
+      <div><span>Snow</span> ${d.snow} in/yr</div>
+      <div><span>July high / Jan low</span> ${d.jul_hi}° / ${d.jan_lo}°F</div>
+      <div><span>To Singapore</span> ${d.sg_hours} h</div>
+      <div><span>Trump 2024</span> county ${d.trump}% · state ${d.state_trump}%</div>
+      <div><span>Schools / life exp.</span> ${d.schools} / ${d.life_exp} yrs</div>
+    </div>`;
+}
+
+function renderTop3(res) {
+  document.getElementById("top3").innerHTML = res.slice(0, 3).map(r => {
+    const top = CRIT.filter(c => W[c.k] > 0.5).sort((a, b) => r.s[b.k] * W[b.k] - r.s[a.k] * W[a.k]).slice(0, 3)
+      .map(c => c.label.replace(/ \(.*\)/, "").toLowerCase()).join(", ");
+    return `<div class="pick" data-n="${r.d.name}" style="border-top:4px solid ${colour(r.total)}">
+      <div class="rank">#${r.rank}</div><div class="nm">${r.d.name}</div>
+      <div class="sc">${r.total.toFixed(1)}</div><div class="why">Wins on ${top}</div></div>`;
+  }).join("");
+  document.querySelectorAll(".pick").forEach(el => el.onclick = () => { sel = el.dataset.n; render(); });
+}
+
+function renderTable(res) {
+  const cols = [{ k: "name", label: "Place" }, { k: "total", label: "Score" }, ...CRIT.map(c => ({ k: c.k, label: c.label.replace(/ \(.*\)/, ""), c }))];
+  const rows = [...res].sort((a, b) => {
+    if (sortKey === "name") return a.d.name.localeCompare(b.d.name);
+    if (sortKey === "total") return b.total - a.total;
+    return b.s[sortKey] - a.s[sortKey];
+  });
+  let h = "<thead><tr>" + cols.map(c => `<th data-k="${c.k}" class="${sortKey === c.k ? "sorted" : ""}" title="${c.c ? (W[c.k].toFixed(1) + "% weight") : ""}">${c.label}${c.c ? `<br><span class="est">${W[c.k].toFixed(1)}%</span>` : ""}</th>`).join("") + "</tr></thead><tbody>";
+  for (const r of rows) {
+    h += `<tr><td>${r.rank}. ${r.d.name}</td><td><span class="cell-bar" style="width:${r.total * .4}px;background:${colour(r.total)}"></span><b>${r.total.toFixed(1)}</b></td>`;
+    for (const c of CRIT) {
+      const s = r.s[c.k];
+      h += `<td title="score ${s.toFixed(0)}/100" style="background:color-mix(in srgb, ${d3.interpolateRdYlGn(s / 100)} 28%, transparent)">${c.f(r.raw[c.k], r.d)}</td>`;
+    }
+    h += "</tr>";
+  }
+  const t = document.getElementById("tbl"); t.innerHTML = h + "</tbody>";
+  t.querySelectorAll("th").forEach(th => th.onclick = () => { sortKey = th.dataset.k; renderTable(res); });
+}
+
+function render() {
+  syncSliders(); buildPresets();
+  const res = scoreAll();
+  if (!sel) sel = res[0].d.name;
+  renderMap(res); renderRank(res); renderDetail(res); renderTop3(res); renderTable(res);
+  if (window.mausbot && mausbot.setContext) {
+    mausbot.setContext("Top 5: " + res.slice(0, 5).map(r => `${r.d.name} ${r.total.toFixed(1)}`).join(", ") +
+      ". Weights: " + CRIT.filter(c => W[c.k] >= 1).map(c => `${c.k} ${W[c.k].toFixed(0)}%`).join(", "));
+  }
+}
+
+document.getElementById("scen").onchange = render;
+document.getElementById("pol").onchange = render;
+buildSliders(); buildMap(); render();
+</script>
+</body>
+</html>
