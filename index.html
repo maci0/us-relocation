@@ -238,8 +238,8 @@ const PRESETS = Object.fromEntries(Object.entries({
   "Well connected":      { money: 10, home: 6, own: 2, rpp: 2, schools: 5, life: 2, health: 3, violent: 6, property: 3, beach: 5, conv: 5, climate: 3, hazard: 2, culture: 3, traffic: 3, roads: 2, snow: 2, intl: 14, domestic: 14, redhat: 2, eco: 3, cons: 1, gov: 1 },
   "Founder & startups":  { tax: 2, govrun: 1, money: 10, home: 6, own: 3, rpp: 2, schools: 5, life: 2, health: 3, kidshosp: 2, budget: 4, violent: 5, property: 2, conv: 3, culture: 3, traffic: 2, intl: 6, domestic: 5, eco: 16, founder: 16, momentum: 5 },
 }).map(([n, w]) => [n, Object.fromEntries(CRIT.map(c => [c.k, w[c.k] || 0]))]));
-let W = { ...PRESETS["Our family"] };
-let sel = null, activePreset = "Our family", sortKey = "total", tblGroup = "family";
+let W = { ...PRESETS["Balanced"] };
+let sel = null, activePreset = "Balanced", sortKey = "total", tblGroup = "family";
 
 function norm100(w) {
   const t = Object.values(w).reduce((a, b) => a + b, 0) || 1;
