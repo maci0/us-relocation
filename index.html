@@ -93,12 +93,11 @@ th.sorted::after { content: " ▾"; }
           <option value="B" title="NYC +20%, Boston +15%, Seattle/NoVA/Naperville +10%">B: plus zone uplift</option>
         </select>
       </label>
-      <label>Politics:
-        <select id="pol" aria-label="Politics measure">
-          <option value="county">County (2024 Trump %)</option>
-          <option value="state">State (2024 Trump %)</option>
-        </select>
-      </label>
+      <div class="row" id="row-lean" style="margin-top:4px">
+        <label for="w-lean">Politics: <span id="leanlbl"></span></label><span class="pct" id="p-lean"></span>
+        <input type="range" id="w-lean" min="-100" max="100" step="5" aria-label="Political lean preference, left to right">
+        <span style="grid-column:1/3;display:flex;justify-content:space-between;font-size:11px;color:var(--muted)"><span>← Left</span><span>doesn't matter</span><span>Right →</span></span>
+      </div>
     </div>
     <div id="sliders"></div>
     <p class="notes">Want to rule a criterion out? Set it to 0. Every number behind these scores is in the table below.</p>
@@ -141,7 +140,7 @@ th.sorted::after { content: " ▾"; }
         <li><b>Beach:</b> straight-line miles to the nearest sea coast, computed from the Natural Earth 1:50m coastline (Great Lakes excluded). Where that point is a bay or tidal river (Potomac, Pamlico Sound, Galveston Bay, Tampa Bay, SF Bay), the distance to the nearest real ocean beach is used instead (estimated). Seattle's 2 mi is Puget Sound salt water; the Pacific beaches are about 110 mi away. Phoenix's nearest sea is the Gulf of California (Mexico).</li>
         <li><b>Driving:</b> traffic is INRIX 2025 Global Traffic Scorecard, hours lost per driver. Places outside INRIX's US top 25 (under 41 h) are estimated and marked est. Road safety is IIHS 2024 deaths per 100M vehicle miles, by state. Snow is the NOAA 1991–2020 normal annual snowfall, rounded.</li>
         <li><b>Living standards:</b> schools are Niche district grades turned into 0–100 (A+ = 97). Life expectancy is the County Health Rankings county figure (approximate, ±1 yr). Healthcare is my 1–5 rating of major academic or cancer centres nearby (e.g. Mayo Jacksonville, MD Anderson Houston, Duke/UNC Raleigh).</li>
-        <li><b>Politics:</b> 2024 presidential Trump share. Unofficial Nov 2026 results: Democrats won the TX and GA governorships and flipped the NC House and both Arizona chambers, and the Utah GOP lost its House supermajority. FL, TN, SC and ID stayed firmly Republican.</li>
+        <li><b>Politics:</b> one slider from left to right, outside the 100% budget; at either end it makes up 30% of the score. Political lean blends the county's and state's 2024 presidential vote with which party controls the state from 2027, scaled so 0 is the most left and 100 the most right place on the list. Unofficial Nov 2026 results: Democrats won the TX and GA governorships and flipped the NC House and both Arizona chambers, and the Utah GOP lost its House supermajority. FL, TN, SC and ID stayed firmly Republican.</li>
         <li><b>Travel:</b> international airport = nonstop international destinations from the metro's main long-haul airport (San Jose uses SFO, NYC uses JFK, Naperville uses O'Hare), scored on a log scale so 100 vs 120 matters less than 0 vs 20. Domestic airport is a 1–22 rank by nonstop reach. <b>Red Hat office</b> = an office within commuting distance (Raleigh HQ, Atlanta, Plano, N. Charleston, Santa Clara, Boston, Tysons).</li>
         <li><b>New in Nov 2026</b> (full tables and sources in the research document, section 11):
           <b>cost of owning</b> = property tax after homestead + home insurance + expected flood cost + HOA for the typical home (Texas MUD/PID fees not included, add $2–6k);
@@ -177,7 +176,9 @@ const GROUPS = {
   politics: { label: "Government & freedom", color: "#b5651d" },
 };
 const S = () => document.getElementById("scen").value;
-const POL = () => document.getElementById("pol").value;
+// politics sits outside the 100% budget: -1 (prefer left) .. +1 (prefer right), up to POLMAX of the total
+const POLMAX = 0.3;
+let PL = 0;
 const climatePenalty = d => Math.max(0, d.jul_hi - 88) + Math.max(0, 35 - d.jan_lo);
 
 const CRIT = [
@@ -220,14 +221,14 @@ const CRIT = [
   { k: "eco",     g: "economy", label: "Startup & VC ecosystem",       get: d => d.ecosystem, hi: true, f: v => v + "/5" },
   { k: "founder", g: "economy", label: "Healthtech founder fit",       get: d => d.founder, hi: true, f: v => v + "/5" },
   { k: "momentum",g: "economy", label: "Booming: people, money, jobs moving in", get: d => d.momentum, hi: true, f: (v, d) => d.momentum_verdict.split(/[ ,(]/)[0] },
-  { k: "cons",    g: "politics",label: "Conservative-leaning voters",  get: d => POL() === "state" ? d.state_trump : d.trump, hi: true, f: v => v.toFixed(1) + "%" },
-  { k: "gov",     g: "politics",label: "Republican-run state from 2027", get: d => d.gov2027, hi: true, f: v => v === 1 ? "R" : v > 0 ? "split" : "D" },
+  { k: "lean",    g: "politics",label: "Political lean (right = 100)", get: d => d.lean, hi: true, pol: true, f: (v, d) => v.toFixed(0) + " · " + (d.gov2027 === 1 ? "R" : d.gov2027 > 0 ? "split" : "D") + " state" },
   { k: "govrun",  g: "politics",label: "Well-run government: satisfaction, low waste, fraud & debt", get: d => d.gov_run, hi: true, f: v => v.toFixed(0) },
   { k: "freedom", g: "politics",label: "Personal & economic freedom (Cato rank)", get: d => d.freedom, hi: false, f: (v, d) => "#" + v + (d.freedom_old ? " (2021)" : "") },
   { k: "selfdef", g: "politics",label: "Right to self-defence & carry", get: d => d.selfdef, hi: true, f: (v, d) => v + "/5" + (d.permitless ? " · permitless" : "") },
   { k: "landlord",g: "politics",label: "Landlord & eviction rights",    get: d => d.landlord, hi: true, f: (v, d) => v + "/5 · " + d.evict_days + " d" },
 ];
 
+const WCRIT = () => CRIT.filter(c => !c.pol);
 const PRESETS = Object.fromEntries(Object.entries({
   "Our family":          { tax: 3, govrun: 3, freedom: 3, selfdef: 2, landlord: 1, money: 9, home: 4, own: 5, autoins: 1, rpp: 2, schools: 6, life: 2, health: 3, kidshosp: 3, air: 2, waldorf: 6, choice: 2, budget: 6, social: 3, dogs: 4, violent: 6, property: 3, homeless: 2, beach: 4, conv: 2, climate: 2, hazard: 2, muggy: 2, outdoors: 2, water: 1, culture: 2, power: 1, traffic: 2, roads: 1, snow: 1, commute: 1, intl: 3, domestic: 2, redhat: 1, eco: 4, founder: 4, momentum: 2, cons: 2, gov: 3 },
   "Balanced":            { tax: 2, govrun: 2, freedom: 1, selfdef: 1, landlord: 1, money: 10, home: 6, own: 3, autoins: 1, rpp: 2, schools: 5, life: 2, health: 3, kidshosp: 2, air: 2, waldorf: 2, choice: 1, budget: 3, social: 2, dogs: 1, violent: 6, property: 3, homeless: 2, beach: 6, conv: 4, climate: 3, hazard: 2, muggy: 2, outdoors: 2, water: 1, culture: 2, power: 1, traffic: 3, roads: 2, snow: 2, commute: 1, intl: 4, domestic: 3, redhat: 1, eco: 2, founder: 1, momentum: 2, cons: 3, gov: 2 },
@@ -237,15 +238,21 @@ const PRESETS = Object.fromEntries(Object.entries({
   "Conservative & cheap":{ tax: 6, govrun: 5, freedom: 6, selfdef: 5, landlord: 2, money: 12, home: 12, own: 6, autoins: 2, rpp: 4, schools: 5, life: 2, health: 2, violent: 7, property: 3, homeless: 2, beach: 4, conv: 2, climate: 2, hazard: 2, traffic: 2, roads: 2, snow: 1, intl: 2, domestic: 2, budget: 4, cons: 10, gov: 10 },
   "Well connected":      { money: 10, home: 6, own: 2, rpp: 2, schools: 5, life: 2, health: 3, violent: 6, property: 3, beach: 5, conv: 5, climate: 3, hazard: 2, culture: 3, traffic: 3, roads: 2, snow: 2, intl: 14, domestic: 14, redhat: 2, eco: 3, cons: 1, gov: 1 },
   "Founder & startups":  { tax: 2, govrun: 1, money: 10, home: 6, own: 3, rpp: 2, schools: 5, life: 2, health: 3, kidshosp: 2, budget: 4, violent: 5, property: 2, conv: 3, culture: 3, traffic: 2, intl: 6, domestic: 5, eco: 16, founder: 16, momentum: 5 },
-}).map(([n, w]) => [n, Object.fromEntries(CRIT.map(c => [c.k, w[c.k] || 0]))]));
-let W = { ...PRESETS["Balanced"] };
+}).map(([n, w]) => {
+  const tot = Object.values(w).reduce((a, b) => a + b, 0), pol = (w.cons || 0) + (w.gov || 0);
+  const o = Object.fromEntries(WCRIT().map(c => [c.k, w[c.k] || 0]));
+  o._pl = Math.round(pol / tot / POLMAX * 20) / 20;
+  return [n, o];
+}));
+function presetW(name) { const { _pl, ...w } = PRESETS[name]; PL = _pl; return norm100(w); }
+let W;
 let sel = null, activePreset = "Balanced", sortKey = "total", tblGroup = "family";
 
 function norm100(w) {
   const t = Object.values(w).reduce((a, b) => a + b, 0) || 1;
   const o = {}; for (const k in w) o[k] = w[k] * 100 / t; return o;
 }
-W = norm100(W);
+W = presetW("Balanced");
 
 // ---------- scoring
 function scoreAll() {
@@ -265,16 +272,19 @@ function scoreAll() {
     r.g = {}; r.gs = {};
     for (const g in GROUPS) { r.g[g] = 0; }
     const gw = {};
-    for (const c of CRIT) {
+    for (const c of WCRIT()) {
       r.g[c.g] += r.s[c.k] * W[c.k] / tw;
       gw[c.g] = (gw[c.g] || 0) + W[c.k];
       r.gs[c.g] = (r.gs[c.g] || 0) + r.s[c.k] * W[c.k];
     }
     for (const g in GROUPS) {
       // unweighted group average when the group has zero weight, so the radar stays readable
-      const cs = CRIT.filter(c => c.g === g);
+      const cs = WCRIT().filter(c => c.g === g);
       r.gs[g] = gw[g] > 0 ? r.gs[g] / gw[g] : cs.reduce((a, c) => a + r.s[c.k], 0) / cs.length;
     }
+    const a = Math.abs(PL) * POLMAX, ps = PL >= 0 ? r.s.lean : 100 - r.s.lean;
+    for (const g in GROUPS) r.g[g] *= 1 - a;
+    r.g.politics += a * ps;
     r.total = Object.values(r.g).reduce((a, b) => a + b, 0);
   });
   res.sort((a, b) => b.total - a.total);
@@ -288,7 +298,7 @@ function buildSliders() {
   for (const g in GROUPS) {
     const h = document.createElement("h3"); h.textContent = GROUPS[g].label;
     h.style.color = GROUPS[g].color; box.appendChild(h);
-    for (const c of CRIT.filter(c => c.g === g)) {
+    for (const c of WCRIT().filter(c => c.g === g)) {
       const row = document.createElement("div"); row.className = "row"; row.id = "row-" + c.k;
       row.innerHTML = `<label for="w-${c.k}">${c.label}</label><span class="pct" id="p-${c.k}"></span>
         <input type="range" id="w-${c.k}" min="0" max="100" step="0.5" aria-label="${c.label} weight">`;
@@ -296,10 +306,14 @@ function buildSliders() {
       row.querySelector("input").addEventListener("input", e => onSlide(c.k, +e.target.value));
     }
   }
+  document.getElementById("w-lean").addEventListener("input", e => { PL = +e.target.value / 100; activePreset = null; render(); });
   syncSliders();
 }
 function syncSliders() {
-  for (const c of CRIT) {
+  document.getElementById("w-lean").value = PL * 100;
+  document.getElementById("leanlbl").textContent = PL === 0 ? "doesn't matter" : (Math.abs(PL) >= .67 ? "strongly " : Math.abs(PL) >= .34 ? "" : "slightly ") + (PL > 0 ? "right" : "left");
+  document.getElementById("p-lean").textContent = (Math.abs(PL) * POLMAX * 100).toFixed(0) + "%";
+  for (const c of WCRIT()) {
     const v = W[c.k];
     document.getElementById("w-" + c.k).value = v;
     document.getElementById("p-" + c.k).textContent = v.toFixed(v < 10 ? 1 : 0) + "%";
@@ -310,7 +324,7 @@ function onSlide(k, v) {
   activePreset = null;
   if (document.getElementById("balance").checked) {
     v = Math.min(v, 100);
-    const others = CRIT.map(c => c.k).filter(x => x !== k);
+    const others = WCRIT().map(c => c.k).filter(x => x !== k);
     const rest = others.reduce((a, x) => a + W[x], 0);
     const target = 100 - v;
     if (rest <= 1e-9) others.forEach(x => W[x] = target / others.length);
@@ -325,7 +339,7 @@ function buildPresets() {
   for (const name in PRESETS) {
     const b = document.createElement("button"); b.textContent = name;
     b.className = name === activePreset ? "on" : "";
-    b.onclick = () => { W = norm100({ ...PRESETS[name] }); activePreset = name; render(); };
+    b.onclick = () => { W = presetW(name); activePreset = name; render(); };
     box.appendChild(b);
   }
 }
@@ -410,7 +424,7 @@ function renderDetail(res) {
       { name: "Average of 22", value: Object.keys(GROUPS).map(g => +(d3.mean(res, x => x.gs[g])).toFixed(0)), lineStyle: { type: "dashed", color: "#999" }, itemStyle: { color: "#999" } },
     ] }],
   });
-  const strong = CRIT.filter(c => W[c.k] > 0.5).sort((a, b) => r.s[b.k] - r.s[a.k]);
+  const strong = WCRIT().filter(c => W[c.k] > 0.5).sort((a, b) => r.s[b.k] - r.s[a.k]);
   const best = strong.slice(0, 3).map(c => c.label.replace(/ \(.*\)/, "")).join(", ");
   const worst = strong.slice(-3).reverse().map(c => c.label.replace(/ \(.*\)/, "")).join(", ");
   document.getElementById("detail").innerHTML = `
@@ -429,7 +443,7 @@ function renderDetail(res) {
       <div><span>Snow</span> ${d.snow} in/yr</div>
       <div><span>July high / Jan low</span> ${d.jul_hi}° / ${d.jan_lo}°F</div>
       <div><span>Intl nonstops</span> ${d.intl}</div>
-      <div><span>Trump 2024</span> county ${d.trump}% · state ${d.state_trump}%</div>
+      <div><span>Political lean</span> ${d.lean.toFixed(0)}/100 (0 = most left, 100 = most right of the list)</div>
       <div><span>Schools / life exp.</span> ${d.schools} / ${d.life_exp} yrs</div>
       <div><span>Owning cost / yr</span> ${fmt$(d.own_cost)} · car ins. ${fmt$(d.auto_ins)}</div>
       <div><span>4-bed median</span> ${d.median_4br ? fmt$(d.median_4br) : "n/a"} · fit ${d.budget_fit}/5</div>
@@ -448,7 +462,7 @@ function renderDetail(res) {
 
 function renderTop3(res) {
   document.getElementById("top3").innerHTML = res.slice(0, 3).map(r => {
-    const top = CRIT.filter(c => W[c.k] > 0.5).sort((a, b) => r.s[b.k] * W[b.k] - r.s[a.k] * W[a.k]).slice(0, 3)
+    const top = WCRIT().filter(c => W[c.k] > 0.5).sort((a, b) => r.s[b.k] * W[b.k] - r.s[a.k] * W[a.k]).slice(0, 3)
       .map(c => c.label.replace(/ \(.*\)/, "").toLowerCase()).join(", ");
     return `<div class="pick" data-n="${r.d.name}" style="border-top:4px solid ${colour(r.total)}">
       <div class="rank">#${r.rank}</div><div class="nm">${r.d.name}</div>
@@ -457,6 +471,7 @@ function renderTop3(res) {
   document.querySelectorAll(".pick").forEach(el => el.onclick = () => { sel = el.dataset.n; render(); });
 }
 
+const wt = c => c.pol ? Math.abs(PL) * POLMAX * 100 : W[c.k];
 function renderTable(res) {
   const shown = CRIT.filter(c => tblGroup === "all" || c.g === tblGroup);
   document.getElementById("tblgroups").innerHTML = ["all", ...Object.keys(GROUPS)].map(g =>
@@ -468,7 +483,7 @@ function renderTable(res) {
     if (sortKey === "total") return b.total - a.total;
     return b.s[sortKey] - a.s[sortKey];
   });
-  let h = "<thead><tr>" + cols.map(c => `<th data-k="${c.k}" class="${sortKey === c.k ? "sorted" : ""}" title="${c.c ? (W[c.k].toFixed(1) + "% weight") : ""}">${c.label}${c.c ? `<br><span class="est">${W[c.k].toFixed(1)}%</span>` : ""}</th>`).join("") + "</tr></thead><tbody>";
+  let h = "<thead><tr>" + cols.map(c => `<th data-k="${c.k}" class="${sortKey === c.k ? "sorted" : ""}" title="${c.c ? (wt(c).toFixed(1) + "% weight") : ""}">${c.label}${c.c ? `<br><span class="est">${wt(c).toFixed(1)}%</span>` : ""}</th>`).join("") + "</tr></thead><tbody>";
   for (const r of rows) {
     h += `<tr><td>${r.rank}. ${r.d.name}</td><td><span class="cell-bar" style="width:${r.total * .25}px;background:${colour(r.total)}"></span><b>${r.total.toFixed(1)}</b></td>`;
     for (const c of shown) {
@@ -488,12 +503,11 @@ function render() {
   renderMap(res); renderRank(res); renderDetail(res); renderTop3(res); renderTable(res);
   if (window.mausbot && mausbot.setContext) {
     mausbot.setContext("Top 5: " + res.slice(0, 5).map(r => `${r.d.name} ${r.total.toFixed(1)}`).join(", ") +
-      ". Weights: " + CRIT.filter(c => W[c.k] >= 1).map(c => `${c.k} ${W[c.k].toFixed(0)}%`).join(", "));
+      ". Weights: " + WCRIT().filter(c => W[c.k] >= 1).map(c => `${c.k} ${W[c.k].toFixed(0)}%`).join(", ") + `, politics ${PL}`);
   }
 }
 
 document.getElementById("scen").onchange = render;
-document.getElementById("pol").onchange = render;
 buildSliders(); buildMap(); render();
 </script>
 </body>

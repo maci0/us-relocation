@@ -6,7 +6,6 @@ window.CITY_DATA = [
   "home": 395851,
   "violent": 130.7,
   "property": 1943,
-  "trump": 50.6,
   "sg_hours": 22.2,
   "dom_rank": 14,
   "inrix": 46,
@@ -84,9 +83,11 @@ window.CITY_DATA = [
   "ocean_mi": 139,
   "iihs_vmt": 1.35,
   "iihs_pop": 13.3,
-  "state_trump": 56.1,
+  "rep_state": 56.1,
+  "rep_county": 50.6,
   "rpp": 98.066,
-  "beach_mi": 139
+  "beach_mi": 139,
+  "lean": 51.6
  },
  {
   "area": "Frisco",
@@ -95,7 +96,6 @@ window.CITY_DATA = [
   "home": 640131,
   "violent": 100.9,
   "property": 1005.8,
-  "trump": 54.6,
   "sg_hours": 21.3,
   "dom_rank": 3,
   "inrix": 44,
@@ -173,9 +173,11 @@ window.CITY_DATA = [
   "ocean_mi": 261,
   "iihs_vmt": 1.35,
   "iihs_pop": 13.3,
-  "state_trump": 56.1,
+  "rep_state": 56.1,
+  "rep_county": 54.6,
   "rpp": 103.09,
-  "beach_mi": 261
+  "beach_mi": 261,
+  "lean": 54.2
  },
  {
   "area": "Sugar Land",
@@ -184,7 +186,6 @@ window.CITY_DATA = [
   "home": 440014,
   "violent": 78.0,
   "property": 1384.6,
-  "trump": 48.0,
   "sg_hours": 21.9,
   "dom_rank": 6,
   "inrix": 70,
@@ -262,9 +263,11 @@ window.CITY_DATA = [
   "ocean_mi": 37,
   "iihs_vmt": 1.35,
   "iihs_pop": 13.3,
-  "state_trump": 56.1,
+  "rep_state": 56.1,
+  "rep_county": 48.0,
   "rpp": 98.629,
-  "beach_mi": 50
+  "beach_mi": 50,
+  "lean": 49.8
  },
  {
   "area": "New Braunfels",
@@ -273,7 +276,6 @@ window.CITY_DATA = [
   "home": 345353,
   "violent": 156.4,
   "property": 1286.1,
-  "trump": 72.3,
   "sg_hours": 22.8,
   "dom_rank": 18,
   "inrix": 43,
@@ -351,9 +353,11 @@ window.CITY_DATA = [
   "ocean_mi": 113,
   "iihs_vmt": 1.35,
   "iihs_pop": 13.3,
-  "state_trump": 56.1,
+  "rep_state": 56.1,
+  "rep_county": 72.3,
   "rpp": 94.716,
-  "beach_mi": 113
+  "beach_mi": 113,
+  "lean": 66.0
  },
  {
   "area": "Franklin",
@@ -362,7 +366,6 @@ window.CITY_DATA = [
   "home": 913277,
   "violent": 132.1,
   "property": 942.5,
-  "trump": 65.4,
   "sg_hours": 23.0,
   "dom_rank": 9,
   "inrix": 65,
@@ -440,9 +443,11 @@ window.CITY_DATA = [
   "ocean_mi": 367,
   "iihs_vmt": 1.52,
   "iihs_pop": 16.6,
-  "state_trump": 64.2,
+  "rep_state": 64.2,
+  "rep_county": 65.4,
   "rpp": 96.338,
-  "beach_mi": 367
+  "beach_mi": 367,
+  "lean": 92.5
  },
  {
   "area": "Tampa",
@@ -451,7 +456,6 @@ window.CITY_DATA = [
   "home": 375619,
   "violent": 376,
   "property": 1465,
-  "trump": 50.9,
   "sg_hours": 22.8,
   "dom_rank": 10,
   "inrix": 41,
@@ -529,9 +533,11 @@ window.CITY_DATA = [
   "ocean_mi": 3,
   "iihs_vmt": 1.26,
   "iihs_pop": 13.4,
-  "state_trump": 56.1,
+  "rep_state": 56.1,
+  "rep_county": 50.9,
   "rpp": 100.89,
-  "beach_mi": 20
+  "beach_mi": 20,
+  "lean": 74.1
  },
  {
   "area": "Orlando",
@@ -540,7 +546,6 @@ window.CITY_DATA = [
   "home": 372775,
   "violent": 505,
   "property": 2300,
-  "trump": 51.1,
   "sg_hours": 23.75,
   "dom_rank": 11,
   "inrix": 38,
@@ -618,9 +623,11 @@ window.CITY_DATA = [
   "ocean_mi": 35,
   "iihs_vmt": 1.26,
   "iihs_pop": 13.4,
-  "state_trump": 56.1,
+  "rep_state": 56.1,
+  "rep_county": 51.1,
   "rpp": 101.418,
-  "beach_mi": 45
+  "beach_mi": 45,
+  "lean": 74.2
  },
  {
   "area": "Jacksonville / St. Johns",
@@ -629,7 +636,6 @@ window.CITY_DATA = [
   "home": 492987,
   "violent": 520,
   "property": 2160,
-  "trump": 65.2,
   "sg_hours": 27.5,
   "dom_rank": 20,
   "inrix": 28,
@@ -707,9 +713,11 @@ window.CITY_DATA = [
   "ocean_mi": 9,
   "iihs_vmt": 1.26,
   "iihs_pop": 13.4,
-  "state_trump": 56.1,
+  "rep_state": 56.1,
+  "rep_county": 65.2,
   "rpp": 99.484,
-  "beach_mi": 8
+  "beach_mi": 8,
+  "lean": 83.6
  },
  {
   "area": "Miami",
@@ -718,7 +726,6 @@ window.CITY_DATA = [
   "home": 583705,
   "violent": 360,
   "property": 2230,
-  "trump": 55.4,
   "sg_hours": 22.6,
   "dom_rank": 13,
   "inrix": 75,
@@ -796,9 +803,11 @@ window.CITY_DATA = [
   "ocean_mi": 1,
   "iihs_vmt": 1.26,
   "iihs_pop": 13.4,
-  "state_trump": 56.1,
+  "rep_state": 56.1,
+  "rep_county": 55.4,
   "rpp": 114.155,
-  "beach_mi": 5
+  "beach_mi": 5,
+  "lean": 77.1
  },
  {
   "area": "Charleston",
@@ -807,7 +816,6 @@ window.CITY_DATA = [
   "home": 598419,
   "violent": 357.6,
   "property": 2021.7,
-  "trump": 48.1,
   "sg_hours": 25.0,
   "dom_rank": 21,
   "inrix": 32,
@@ -885,9 +893,11 @@ window.CITY_DATA = [
   "ocean_mi": 1,
   "iihs_vmt": 1.67,
   "iihs_pop": 18.9,
-  "state_trump": 58.2,
+  "rep_state": 58.2,
+  "rep_county": 48.1,
   "rpp": 100.962,
-  "beach_mi": 8
+  "beach_mi": 8,
+  "lean": 74.5
  },
  {
   "area": "Greenville",
@@ -896,7 +906,6 @@ window.CITY_DATA = [
   "home": 333224,
   "violent": 644.4,
   "property": 3468.4,
-  "trump": 60.2,
   "sg_hours": 29.0,
   "dom_rank": 22,
   "inrix": 22,
@@ -974,9 +983,11 @@ window.CITY_DATA = [
   "ocean_mi": 190,
   "iihs_vmt": 1.67,
   "iihs_pop": 18.9,
-  "state_trump": 58.2,
+  "rep_state": 58.2,
+  "rep_county": 60.2,
   "rpp": 93.26,
-  "beach_mi": 190
+  "beach_mi": 190,
+  "lean": 82.6
  },
  {
   "area": "Cary",
@@ -985,7 +996,6 @@ window.CITY_DATA = [
   "home": 613395,
   "violent": 71.0,
   "property": 1317,
-  "trump": 38.0,
   "sg_hours": 23.0,
   "dom_rank": 15,
   "inrix": 30,
@@ -1063,9 +1073,11 @@ window.CITY_DATA = [
   "ocean_mi": 99,
   "iihs_vmt": 1.24,
   "iihs_pop": 14.7,
-  "state_trump": 50.9,
+  "rep_state": 50.9,
+  "rep_county": 38.0,
   "rpp": 98.157,
-  "beach_mi": 120
+  "beach_mi": 120,
+  "lean": 37.6
  },
  {
   "area": "Lehi (Utah Co.)",
@@ -1074,7 +1086,6 @@ window.CITY_DATA = [
   "home": 576079,
   "violent": 88.2,
   "property": 541,
-  "trump": 68.3,
   "sg_hours": 21.4,
   "dom_rank": 2,
   "inrix": 28,
@@ -1152,9 +1163,11 @@ window.CITY_DATA = [
   "ocean_mi": 542,
   "iihs_vmt": 0.77,
   "iihs_pop": 7.9,
-  "state_trump": 59.4,
+  "rep_state": 59.4,
+  "rep_county": 68.3,
   "rpp": 100.868,
-  "beach_mi": 542
+  "beach_mi": 542,
+  "lean": 89.2
  },
  {
   "area": "Meridian",
@@ -1163,7 +1176,6 @@ window.CITY_DATA = [
   "home": 538033,
   "violent": 146.8,
   "property": 571.4,
-  "trump": 53.4,
   "sg_hours": 21.0,
   "dom_rank": 19,
   "inrix": 20,
@@ -1241,9 +1253,11 @@ window.CITY_DATA = [
   "ocean_mi": 377,
   "iihs_vmt": 1.19,
   "iihs_pop": 11.9,
-  "state_trump": 66.9,
+  "rep_state": 66.9,
+  "rep_county": 53.4,
   "rpp": 98.391,
-  "beach_mi": 377
+  "beach_mi": 377,
+  "lean": 87.4
  },
  {
   "area": "Scottsdale",
@@ -1252,7 +1266,6 @@ window.CITY_DATA = [
   "home": 852500,
   "violent": 153.3,
   "property": 1875.3,
-  "trump": 51.0,
   "sg_hours": 20.2,
   "dom_rank": 1,
   "inrix": 42,
@@ -1330,9 +1343,11 @@ window.CITY_DATA = [
   "ocean_mi": 171,
   "iihs_vmt": 1.74,
   "iihs_pop": 16.2,
-  "state_trump": 52.2,
+  "rep_state": 52.2,
+  "rep_county": 51.0,
   "rpp": 103.316,
-  "beach_mi": 171
+  "beach_mi": 171,
+  "lean": 36.6
  },
  {
   "area": "Alpharetta",
@@ -1341,7 +1356,6 @@ window.CITY_DATA = [
   "home": 656261,
   "violent": 249.3,
   "property": 1152.1,
-  "trump": 40.0,
   "sg_hours": 24.0,
   "dom_rank": 5,
   "inrix": 75,
@@ -1419,9 +1433,11 @@ window.CITY_DATA = [
   "ocean_mi": 231,
   "iihs_vmt": 1.15,
   "iihs_pop": 12.5,
-  "state_trump": 50.7,
+  "rep_state": 50.7,
+  "rep_county": 40.0,
   "rpp": 100.058,
-  "beach_mi": 231
+  "beach_mi": 231,
+  "lean": 38.7
  },
  {
   "area": "New York City",
@@ -1430,7 +1446,6 @@ window.CITY_DATA = [
   "home": 825854,
   "violent": 549.9,
   "property": 2368,
-  "trump": 30.0,
   "sg_hours": 19.0,
   "dom_rank": 12,
   "inrix": 102,
@@ -1508,9 +1523,11 @@ window.CITY_DATA = [
   "ocean_mi": 2,
   "iihs_vmt": 0.91,
   "iihs_pop": 5.5,
-  "state_trump": 43.3,
+  "rep_state": 43.3,
+  "rep_county": 30.0,
   "rpp": 112.563,
-  "beach_mi": 12
+  "beach_mi": 12,
+  "lean": 13.1
  },
  {
   "area": "San Jose",
@@ -1519,7 +1536,6 @@ window.CITY_DATA = [
   "home": 1353869,
   "violent": 501.4,
   "property": 2346,
-  "trump": 28.1,
   "sg_hours": 16.5,
   "dom_rank": 16,
   "inrix": 40,
@@ -1597,9 +1613,11 @@ window.CITY_DATA = [
   "ocean_mi": 14,
   "iihs_vmt": 1.19,
   "iihs_pop": 9.8,
-  "state_trump": 38.3,
+  "rep_state": 38.3,
+  "rep_county": 28.1,
   "rpp": 110.423,
-  "beach_mi": 25
+  "beach_mi": 25,
+  "lean": 6.4
  },
  {
   "area": "Boston",
@@ -1608,7 +1626,6 @@ window.CITY_DATA = [
   "home": 761236,
   "violent": 583.2,
   "property": 1930.8,
-  "trump": 22.2,
   "sg_hours": 21.5,
   "dom_rank": 17,
   "inrix": 83,
@@ -1686,9 +1703,11 @@ window.CITY_DATA = [
   "ocean_mi": 2,
   "iihs_vmt": 0.59,
   "iihs_pop": 5.1,
-  "state_trump": 36.0,
+  "rep_state": 36.0,
+  "rep_county": 22.2,
   "rpp": 108.266,
-  "beach_mi": 8
+  "beach_mi": 8,
+  "lean": 0.0
  },
  {
   "area": "Seattle",
@@ -1697,7 +1716,6 @@ window.CITY_DATA = [
   "home": 822572,
   "violent": 705.9,
   "property": 4461,
-  "trump": 22.3,
   "sg_hours": 16.5,
   "dom_rank": 8,
   "inrix": 68,
@@ -1775,9 +1793,11 @@ window.CITY_DATA = [
   "ocean_mi": 2,
   "iihs_vmt": 1.21,
   "iihs_pop": 9.2,
-  "state_trump": 39.0,
+  "rep_state": 39.0,
+  "rep_county": 22.3,
   "rpp": 111.133,
-  "beach_mi": 2
+  "beach_mi": 2,
+  "lean": 3.3
  },
  {
   "area": "Ashburn (Loudoun)",
@@ -1786,7 +1806,6 @@ window.CITY_DATA = [
   "home": 792206,
   "violent": 72.6,
   "property": 545.6,
-  "trump": 40.1,
   "sg_hours": 22.0,
   "dom_rank": 4,
   "inrix": 70,
@@ -1864,9 +1883,11 @@ window.CITY_DATA = [
   "ocean_mi": 27,
   "iihs_vmt": 1.04,
   "iihs_pop": 10.4,
-  "state_trump": 46.1,
+  "rep_state": 46.1,
+  "rep_county": 40.1,
   "rpp": 108.884,
-  "beach_mi": 140
+  "beach_mi": 140,
+  "lean": 22.8
  },
  {
   "area": "Naperville",
@@ -1875,7 +1896,6 @@ window.CITY_DATA = [
   "home": 618458,
   "violent": 70.1,
   "property": 568.6,
-  "trump": 42.5,
   "sg_hours": 22.2,
   "dom_rank": 7,
   "inrix": 112,
@@ -1953,9 +1973,11 @@ window.CITY_DATA = [
   "ocean_mi": 615,
   "iihs_vmt": 1.13,
   "iihs_pop": 9.3,
-  "state_trump": 43.5,
+  "rep_state": 43.5,
+  "rep_county": 42.5,
   "rpp": 103.595,
-  "beach_mi": 615
+  "beach_mi": 615,
+  "lean": 21.6
  }
 ];
 window.META = {"sg_take_home": 221560, "sg_budget": 100121, "sg_savings": 121440};
