@@ -89,8 +89,8 @@ th.sorted::after { content: " ▾"; }
       <label><input type="checkbox" id="balance" checked> Keep the total at 100% (other sliders adjust)</label>
       <div class="row" id="row-pay" style="margin-top:4px">
         <label for="w-pay">Your US pay (base + bonus)</label><span class="pct" id="p-pay"></span>
-        <input type="range" id="w-pay" min="150" max="450" step="0.1" value="257.9" aria-label="US pay in thousands of dollars">
-        <span style="grid-column:1/3;display:flex;justify-content:space-between;font-size:11px;color:var(--muted)"><span>$150k</span><span id="pay-reset" style="cursor:pointer;text-decoration:underline dotted" title="Back to the current offer basis">reset to $257.9k</span><span>$450k</span></span>
+        <input type="range" id="w-pay" min="200" max="600" step="1" value="250" aria-label="US pay in thousands of dollars">
+        <span style="grid-column:1/3;display:flex;justify-content:space-between;font-size:11px;color:var(--muted)"><span>$200k</span><span id="pay-reset" style="cursor:pointer;text-decoration:underline dotted" >reset to $250k</span><span>$600k</span></span>
       </div>
       <label title="NYC +20%, Boston +15%, Seattle/NoVA/Naperville +10%"><input type="checkbox" id="scen"> Add Red Hat's pay-zone uplift in pricier cities</label>
       <div class="row" id="row-lean" style="margin-top:4px">
@@ -135,7 +135,7 @@ th.sorted::after { content: " ▾"; }
       <p><b><a href="sources.html">Where every number comes from</a></b>: a searchable list of all sourced figures (place, field, value, source, date), also as <a href="provenance.csv" download>CSV</a>.</p>
       <ul>
         <li><b>Scoring:</b> each criterion is min-max scaled to 0–100 across all places, flipped where lower is better. The overall score is the weighted average. Beach distance uses a square-root curve: the first 50 miles count most, and anything past 400 mi scores 0. Climate counts degrees above an 88°F July high plus degrees below a 35°F January low. Convenience is 60% Walk Score of the family area and 40% metro size (log).</li>
-        <li><b>Money left vs Singapore:</b> yearly US take-home on the pay you set with the slider (default $257.9k, your current offer basis; MFJ, 1 child), minus the full family budget (rent, 2 cars, groceries, eating out, utilities, healthcare, Waldorf/kindergarten), plus the 401(k) match. That's compared with Singapore savings of about $121k on S$330k (EP, no CPF). Taken from opportunity_cost.py / section 08. At the default pay every place is negative, so a higher score means "least worse off"; from about $272k (San Antonio) the cheapest places start to beat Singapore.</li>
+        <li><b>Money left vs Singapore:</b> yearly US take-home on the pay you set with the slider (default $250k; MFJ, 1 child), minus the full family budget (rent, 2 cars, groceries, eating out, utilities, healthcare, Waldorf/kindergarten), plus the 401(k) match. That's compared with Singapore savings of about $121k on S$330k (EP, no CPF). Taken from opportunity_cost.py / section 08. At the default pay every place is negative, so a higher score means "least worse off"; from about $272k (San Antonio) the cheapest places start to beat Singapore.</li>
         <li><b>House price:</b> Zillow ZHVI (Sep 2026) for the family area shown (e.g. Frisco, Cary, Lehi), not the core city. <b>Everyday prices:</b> BEA Regional Price Parity 2024.</li>
         <li><b>Crime:</b> FBI UCR / city police data, per 100k, for the same family area. Several suburb figures come via sites that republish FBI data (OpenCrime, AreaVibes). Jacksonville uses Duval city rates because there's no reliable St. Johns figure. Orlando's property crime is estimated.</li>
         <li><b>Beach:</b> straight-line miles to the nearest sea coast, computed from the Natural Earth 1:50m coastline (Great Lakes excluded). Where that point is a bay or tidal river (Potomac, Pamlico Sound, Galveston Bay, Tampa Bay, SF Bay), the distance to the nearest real ocean beach is used instead (estimated). Seattle's 2 mi is Puget Sound salt water; the Pacific beaches are about 110 mi away. Phoenix's nearest sea is the Gulf of California (Mexico).</li>
@@ -178,7 +178,7 @@ const GROUPS = {
 };
 const S = () => document.getElementById("scen").checked ? "B" : "A";
 // pay slider: money results are precomputed on META.pay_grid and interpolated here
-let PAY = META.pay_base;
+let PAY = 250000;
 function pv(d, k) {
   const g = META.pay_grid, a = d[k + "_" + S() + "_g"];
   let i = 1; while (i < g.length - 1 && g[i] < PAY) i++;
@@ -526,8 +526,8 @@ function setPay(v) {
   render();
 }
 document.getElementById("w-pay").addEventListener("input", e => setPay(+e.target.value));
-document.getElementById("pay-reset").onclick = () => setPay(META.pay_base / 1000);
-document.getElementById("p-pay").textContent = "$257.9k";
+document.getElementById("pay-reset").onclick = () => setPay(250);
+document.getElementById("p-pay").textContent = "$250k";
 buildSliders(); buildMap(); render();
 </script>
 </body>
