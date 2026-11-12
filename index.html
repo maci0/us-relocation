@@ -87,12 +87,12 @@ th.sorted::after { content: " ▾"; }
     <div class="presets" id="presets" role="group" aria-label="Presets"></div>
     <div class="toggles">
       <label><input type="checkbox" id="balance" checked> Keep the total at 100% (other sliders adjust)</label>
-      <label>Pay:
-        <select id="scen" aria-label="Pay scenario">
-          <option value="A">A: $257.9k everywhere</option>
-          <option value="B" title="NYC +20%, Boston +15%, Seattle/NoVA/Naperville +10%">B: plus zone uplift</option>
-        </select>
-      </label>
+      <div class="row" id="row-pay" style="margin-top:4px">
+        <label for="w-pay">Your US pay (base + bonus)</label><span class="pct" id="p-pay"></span>
+        <input type="range" id="w-pay" min="150" max="450" step="0.1" value="257.9" aria-label="US pay in thousands of dollars">
+        <span style="grid-column:1/3;display:flex;justify-content:space-between;font-size:11px;color:var(--muted)"><span>$150k</span><span id="pay-reset" style="cursor:pointer;text-decoration:underline dotted" title="Back to the current offer basis">reset to $257.9k</span><span>$450k</span></span>
+      </div>
+      <label title="NYC +20%, Boston +15%, Seattle/NoVA/Naperville +10%"><input type="checkbox" id="scen"> Add Red Hat's pay-zone uplift in pricier cities</label>
       <div class="row" id="row-lean" style="margin-top:4px">
         <label for="w-lean">Politics: <span id="leanlbl"></span></label><span class="pct" id="p-lean"></span>
         <input type="range" id="w-lean" min="-100" max="100" step="5" aria-label="Political lean preference, left to right">
@@ -135,7 +135,7 @@ th.sorted::after { content: " ▾"; }
       <p><b><a href="sources.html">Where every number comes from</a></b>: a searchable list of all sourced figures (place, field, value, source, date), also as <a href="provenance.csv" download>CSV</a>.</p>
       <ul>
         <li><b>Scoring:</b> each criterion is min-max scaled to 0–100 across all places, flipped where lower is better. The overall score is the weighted average. Beach distance uses a square-root curve: the first 50 miles count most, and anything past 400 mi scores 0. Climate counts degrees above an 88°F July high plus degrees below a 35°F January low. Convenience is 60% Walk Score of the family area and 40% metro size (log).</li>
-        <li><b>Money left vs Singapore:</b> yearly US take-home on $257.9k (MFJ, 1 child), minus the full family budget (rent, 2 cars, groceries, eating out, utilities, healthcare, Waldorf/kindergarten), plus the 401(k) match. That's compared with Singapore savings of about $121k on S$330k (EP, no CPF). Taken from opportunity_cost.py / section 08. Every place is negative, so a higher score means "least worse off".</li>
+        <li><b>Money left vs Singapore:</b> yearly US take-home on the pay you set with the slider (default $257.9k, your current offer basis; MFJ, 1 child), minus the full family budget (rent, 2 cars, groceries, eating out, utilities, healthcare, Waldorf/kindergarten), plus the 401(k) match. That's compared with Singapore savings of about $121k on S$330k (EP, no CPF). Taken from opportunity_cost.py / section 08. At the default pay every place is negative, so a higher score means "least worse off"; from about $272k (San Antonio) the cheapest places start to beat Singapore.</li>
         <li><b>House price:</b> Zillow ZHVI (Sep 2026) for the family area shown (e.g. Frisco, Cary, Lehi), not the core city. <b>Everyday prices:</b> BEA Regional Price Parity 2024.</li>
         <li><b>Crime:</b> FBI UCR / city police data, per 100k, for the same family area. Several suburb figures come via sites that republish FBI data (OpenCrime, AreaVibes). Jacksonville uses Duval city rates because there's no reliable St. Johns figure. Orlando's property crime is estimated.</li>
         <li><b>Beach:</b> straight-line miles to the nearest sea coast, computed from the Natural Earth 1:50m coastline (Great Lakes excluded). Where that point is a bay or tidal river (Potomac, Pamlico Sound, Galveston Bay, Tampa Bay, SF Bay), the distance to the nearest real ocean beach is used instead (estimated). Seattle's 2 mi is Puget Sound salt water; the Pacific beaches are about 110 mi away. Phoenix's nearest sea is the Gulf of California (Mexico).</li>
@@ -151,7 +151,7 @@ th.sorted::after { content: " ▾"; }
           <b>community</b> = JEC county Social Capital Index; <b>momentum</b> = average of scaled net domestic migration (2025), IRS net income moving in per person and 12-month job growth;
           <b>reliable power</b> = 2024 utility outage minutes (log scale; 2024 hurricanes inflate Houston, Tampa, Greenville, Charleston); <b>homelessness</b> = HUD 2025 count per 10k (log scale);
           <b>Republican-run state from 2027</b> = 1 for a Republican governor and legislature, 0.33 for TX, GA, NC, OH and KS (split control; the Kansas governor race was still uncalled on 11 Nov), 0 for Democratic control;
-          <b>total tax</b> = state + local income tax (2025 rules, your pay), property tax on the typical home, sales tax on $45k of spending and fees on two cars (federal tax is the same everywhere; WA Cares and CA disability levies added; overlaps partly with "money left" and "cost of owning");
+          <b>total tax</b> = state + local income tax (2025 rules; the income-tax part follows the pay slider), property tax on the typical home, sales tax on $45k of spending and fees on two cars (federal tax is the same everywhere; WA Cares and CA disability levies added; overlaps partly with "money left" and "cost of owning");
           <b>well-run government</b> = average of the scaled signals that exist for each place: local resident satisfaction survey, WalletHub best-run city rank, WalletHub taxpayer-ROI state rank, Truth in Accounting state surplus/debt per taxpayer, federal corruption convictions, and pandemic-era unemployment improper-payment rate;
           <b>freedom</b> = Cato Freedom in the 50 States 2026 overall rank (where the 2026 rank was not readable, the 2021 rank is used); <b>self-defence</b> and <b>landlord</b> are 1–5 researcher ratings (castle doctrine, stand-your-ground, permitless carry, local preemption; eviction speed, just-cause, rent control, squatter law).</li>
         <li><b>Hazard:</b> FEMA National Risk Index county rating (1 = very low, 5 = very high). Florida home insurance ($2.8–6k/yr) isn't in the house price.</li>
@@ -176,17 +176,26 @@ const GROUPS = {
   economy:  { label: "Startups & economy", color: "#2e7d32" },
   politics: { label: "Government & freedom", color: "#b5651d" },
 };
-const S = () => document.getElementById("scen").value;
+const S = () => document.getElementById("scen").checked ? "B" : "A";
+// pay slider: money results are precomputed on META.pay_grid and interpolated here
+let PAY = META.pay_base;
+function pv(d, k) {
+  const g = META.pay_grid, a = d[k + "_" + S() + "_g"];
+  let i = 1; while (i < g.length - 1 && g[i] < PAY) i++;
+  const t = (PAY - g[i - 1]) / (g[i] - g[i - 1]);
+  return a[i - 1] + (a[i] - a[i - 1]) * t;
+}
+const taxNow = d => d.tax_total + pv(d, "stx") - d.stx0;
 // politics sits outside the 100% budget: -1 (prefer left) .. +1 (prefer right), up to POLMAX of the total
 const POLMAX = 0.3;
 let PL = 0;
 const climatePenalty = d => Math.max(0, d.jul_hi - 88) + Math.max(0, 35 - d.jan_lo);
 
 const CRIT = [
-  { k: "money",   g: "money",   label: "Money left vs Singapore / yr", get: d => d["delta_" + S()], hi: true, f: fmt$ },
+  { k: "money",   g: "money",   label: "Money left vs Singapore / yr", get: d => pv(d, "delta"), hi: true, f: fmt$ },
   { k: "home",    g: "money",   label: "House price (low = good)",     get: d => d.home, hi: false, f: fmtK },
   { k: "rpp",     g: "money",   label: "Everyday prices (RPP)",        get: d => d.rpp, hi: false, f: v => v.toFixed(1) },
-  { k: "tax",     g: "money",   label: "Total state & local tax: income, property, sales, car (low = good)", get: d => d.tax_total, hi: false, f: fmtK },
+  { k: "tax",     g: "money",   label: "Total state & local tax: income, property, sales, car (low = good)", get: d => taxNow(d), hi: false, f: fmtK },
   { k: "own",     g: "money",   label: "Cost of owning: property tax, insurance, HOA (low = good)", get: d => d.own_cost, hi: false, f: fmtK },
   { k: "autoins", g: "money",   label: "Car insurance (low = good)",   get: d => d.auto_ins, hi: false, f: v => "$" + v.toLocaleString() },
   { k: "schools", g: "living",  label: "School quality",               get: d => d.schools, hi: true, f: v => v },
@@ -434,10 +443,10 @@ function renderDetail(res) {
     <p style="margin:4px 0 10px;font-size:13px">Family area: <b>${d.area}</b>, ${d.state} · pay zone ${d.zone} · nearest coast: ${d.coast}<br>
     <span style="color:#1a9850">Strongest:</span> ${best}<br><span style="color:#d7301f">Weakest:</span> ${worst}</p>
     <div class="detail-grid">
-      <div><span>Gross pay</span> ${fmt$(d["gross_" + S()])}</div>
-      <div><span>Take-home</span> ${fmt$(d["take_home_" + S()])}</div>
+      <div><span>Gross pay</span> ${fmt$(pv(d, "gross"))}</div>
+      <div><span>Take-home</span> ${fmt$(pv(d, "take_home"))}</div>
       <div><span>Family budget</span> ${fmt$(d.budget)}</div>
-      <div><span>vs Singapore / yr</span> <b>${fmt$(d["delta_" + S()])}</b></div>
+      <div><span>vs Singapore / yr</span> <b>${fmt$(pv(d, "delta"))}</b></div>
       <div><span>Home value</span> ${fmt$(d.home)}</div>
       <div><span>Beach</span> ${d.beach_mi} mi</div>
       <div><span>Violent / property crime</span> ${Math.round(d.violent)} / ${Math.round(d.property).toLocaleString()}</div>
@@ -455,7 +464,7 @@ function renderDetail(res) {
       <div><span>Startups / founder / dogs</span> ${d.ecosystem} / ${d.founder} / ${d.dogs} of 5</div>
       <div><span>Momentum</span> ${d.momentum_verdict} · migration ${d.mig_rate > 0 ? "+" : ""}${d.mig_rate}/1k</div>
       <div><span>Muggy / bad-air days</span> ${d.muggy} / ${d.bad_air}</div>
-      <div><span>State & local tax / yr</span> ${fmtK(d.tax_total)}</div>
+      <div><span>State & local tax / yr</span> ${fmtK(taxNow(d))}</div>
       <div><span>Well-run government</span> ${d.gov_run.toFixed(0)}/100${d.gov_sat != null ? " · " + Math.round(d.gov_sat) + "% satisfied" : ""}${d.best_run ? " · best-run city #" + d.best_run : ""}</div>
       <div><span>State finances per taxpayer</span> ${d.tia >= 0 ? "+" : "−"}$${Math.abs(d.tia).toLocaleString()}</div>
       <div><span>Freedom / self-defence / landlord</span> Cato #${d.freedom}${d.freedom_old ? " (2021)" : ""} · ${d.selfdef}/5${d.permitless ? " permitless carry" : ""} · ${d.landlord}/5, ~${d.evict_days} d eviction</div>
@@ -506,11 +515,20 @@ function render() {
   renderMap(res); renderRank(res); renderDetail(res); renderTop3(res); renderTable(res);
   if (window.mausbot && mausbot.setContext) {
     mausbot.setContext("Top 5: " + res.slice(0, 5).map(r => `${r.d.name} ${r.total.toFixed(1)}`).join(", ") +
-      ". Weights: " + WCRIT().filter(c => W[c.k] >= 1).map(c => `${c.k} ${W[c.k].toFixed(0)}%`).join(", ") + `, politics ${PL}`);
+      ". Weights: " + WCRIT().filter(c => W[c.k] >= 1).map(c => `${c.k} ${W[c.k].toFixed(0)}%`).join(", ") + `, politics ${PL}, pay $${PAY}`);
   }
 }
 
 document.getElementById("scen").onchange = render;
+function setPay(v) {
+  PAY = Math.round(v * 10) * 100;
+  document.getElementById("w-pay").value = PAY / 1000;
+  document.getElementById("p-pay").textContent = "$" + (PAY / 1000).toFixed(PAY % 1000 ? 1 : 0) + "k";
+  render();
+}
+document.getElementById("w-pay").addEventListener("input", e => setPay(+e.target.value));
+document.getElementById("pay-reset").onclick = () => setPay(META.pay_base / 1000);
+document.getElementById("p-pay").textContent = "$257.9k";
 buildSliders(); buildMap(); render();
 </script>
 </body>
