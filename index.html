@@ -78,7 +78,7 @@ th.sorted::after { content: " ▾"; }
 <body>
 <header>
   <h1>Where in the US should we live?</h1>
-  <p class="sub">22 places, 19 criteria. Move a slider and the other weights rebalance, so the total stays 100%. The ranking, map and table all update as you go. Each criterion is scored 0–100 across the 22 places (100 = best of the group).</p>
+  <p class="sub"><a href="sources.html">Sources</a> · <span class="nplaces">36</span> places, <span id="ncrit"></span> criteria. Move a slider and the other weights rebalance, so the total stays 100%. The ranking, map and table all update as you go. Each criterion is scored 0–100 across the <span class="nplaces">36</span> places (100 = best of the group).</p>
 </header>
 
 <div class="layout">
@@ -109,7 +109,7 @@ th.sorted::after { content: " ▾"; }
     <section class="two">
       <div class="card">
         <h2>Map: colour and size show the overall score</h2>
-        <div id="map" role="img" aria-label="US map with the 22 places coloured by score"></div>
+        <div id="map" role="img" aria-label="US map with the places coloured by score"></div>
         <div class="legend"><span>worse</span><span class="bar"></span><span>better</span><span style="margin-left:auto">Click a dot for details</span></div>
       </div>
       <div class="card">
@@ -132,8 +132,9 @@ th.sorted::after { content: " ▾"; }
 
     <section class="card notes">
       <h2 style="color:var(--fg)">Method, sources and caveats</h2>
+      <p><b><a href="sources.html">Where every number comes from</a></b>: a searchable list of all sourced figures (place, field, value, source, date), also as <a href="provenance.csv" download>CSV</a>.</p>
       <ul>
-        <li><b>Scoring:</b> each criterion is min-max scaled to 0–100 across the 22 places, flipped where lower is better. The overall score is the weighted average. Beach distance uses a square-root curve: the first 50 miles count most, and anything past 400 mi scores 0. Climate counts degrees above an 88°F July high plus degrees below a 35°F January low. Convenience is 60% Walk Score of the family area and 40% metro size (log).</li>
+        <li><b>Scoring:</b> each criterion is min-max scaled to 0–100 across all places, flipped where lower is better. The overall score is the weighted average. Beach distance uses a square-root curve: the first 50 miles count most, and anything past 400 mi scores 0. Climate counts degrees above an 88°F July high plus degrees below a 35°F January low. Convenience is 60% Walk Score of the family area and 40% metro size (log).</li>
         <li><b>Money left vs Singapore:</b> yearly US take-home on $257.9k (MFJ, 1 child), minus the full family budget (rent, 2 cars, groceries, eating out, utilities, healthcare, Waldorf/kindergarten), plus the 401(k) match. That's compared with Singapore savings of about $121k on S$330k (EP, no CPF). Taken from opportunity_cost.py / section 08. Every place is negative, so a higher score means "least worse off".</li>
         <li><b>House price:</b> Zillow ZHVI (Sep 2026) for the family area shown (e.g. Frisco, Cary, Lehi), not the core city. <b>Everyday prices:</b> BEA Regional Price Parity 2024.</li>
         <li><b>Crime:</b> FBI UCR / city police data, per 100k, for the same family area. Several suburb figures come via sites that republish FBI data (OpenCrime, AreaVibes). Jacksonville uses Duval city rates because there's no reliable St. Johns figure. Orlando's property crime is estimated.</li>
@@ -141,18 +142,18 @@ th.sorted::after { content: " ▾"; }
         <li><b>Driving:</b> traffic is INRIX 2025 Global Traffic Scorecard, hours lost per driver. Places outside INRIX's US top 25 (under 41 h) are estimated and marked est. Road safety is IIHS 2024 deaths per 100M vehicle miles, by state. Snow is the NOAA 1991–2020 normal annual snowfall, rounded.</li>
         <li><b>Living standards:</b> schools are Niche district grades turned into 0–100 (A+ = 97). Life expectancy is the County Health Rankings county figure (approximate, ±1 yr). Healthcare is my 1–5 rating of major academic or cancer centres nearby (e.g. Mayo Jacksonville, MD Anderson Houston, Duke/UNC Raleigh).</li>
         <li><b>Politics:</b> one slider from left to right, outside the 100% budget; at either end it makes up 30% of the score. Political lean blends the county's and state's 2024 presidential vote with which party controls the state from 2027, scaled so 0 is the most left and 100 the most right place on the list. Unofficial Nov 2026 results: Democrats won the TX and GA governorships and flipped the NC House and both Arizona chambers, and the Utah GOP lost its House supermajority. FL, TN, SC and ID stayed firmly Republican.</li>
-        <li><b>Travel:</b> international airport = nonstop international destinations from the metro's main long-haul airport (San Jose uses SFO, NYC uses JFK, Naperville uses O'Hare), scored on a log scale so 100 vs 120 matters less than 0 vs 20. Domestic airport is a 1–22 rank by nonstop reach. <b>Red Hat office</b> = an office within commuting distance (Raleigh HQ, Atlanta, Plano, N. Charleston, Santa Clara, Boston, Tysons).</li>
-        <li><b>New in Nov 2026</b> (full tables and sources in the research document, section 11):
+        <li><b>Travel:</b> international airport = nonstop international destinations from the metro's main long-haul airport (San Jose uses SFO, NYC uses JFK, Naperville uses O'Hare), scored on a log scale so 100 vs 120 matters less than 0 vs 20. Domestic airport = rank by number of nonstop US destinations from the main airport (1 = most; all airports counted the same way from their published destination lists, Nov 2026). <b>Red Hat office</b> = an office within commuting distance (Raleigh HQ, Atlanta, Plano, N. Charleston, Santa Clara, Boston, Tysons).</li>
+        <li><b>New in Nov 2026</b> (14 places added on 11 Nov: Charlotte, Huntsville, Knoxville, Chattanooga, Oklahoma City, Kansas City, Indianapolis, Columbus, Denver, Las Vegas, Sarasota, Minneapolis, NW Arkansas and San Francisco; full tables and sources in the research document, section 11):
           <b>cost of owning</b> = property tax after homestead + home insurance + expected flood cost + HOA for the typical home (Texas MUD/PID fees not included, add $2–6k);
           <b>4-bed home for $400–600k</b>, <b>dogs</b> (breed bans, insurer breed rules, HOA limits, heat), <b>founder fit</b> and <b>startup ecosystem</b> are 1–5 researcher ratings from sourced figures;
           <b>Waldorf</b> = schools within ~30 min (capped at 4) + 3 if a tuition-free public Waldorf charter is in reach;
           <b>school money</b> = state ESA/voucher per child in 2026–27; Texas is counted at half because the governor-elect has pledged to end it, and several states give a ~$260k household low priority;
           <b>community</b> = JEC county Social Capital Index; <b>momentum</b> = average of scaled net domestic migration (2025), IRS net income moving in per person and 12-month job growth;
           <b>reliable power</b> = 2024 utility outage minutes (log scale; 2024 hurricanes inflate Houston, Tampa, Greenville, Charleston); <b>homelessness</b> = HUD 2025 count per 10k (log scale);
-          <b>Republican-run state from 2027</b> = 1 for a Republican governor and legislature, 0.33 for TX, GA and NC (Democratic governor and House, Republican Senate), 0 for Democratic control;
+          <b>Republican-run state from 2027</b> = 1 for a Republican governor and legislature, 0.33 for TX, GA, NC, OH and KS (split control; the Kansas governor race was still uncalled on 11 Nov), 0 for Democratic control;
           <b>total tax</b> = state + local income tax (2025 rules, your pay), property tax on the typical home, sales tax on $45k of spending and fees on two cars (federal tax is the same everywhere; WA Cares and CA disability levies added; overlaps partly with "money left" and "cost of owning");
           <b>well-run government</b> = average of the scaled signals that exist for each place: local resident satisfaction survey, WalletHub best-run city rank, WalletHub taxpayer-ROI state rank, Truth in Accounting state surplus/debt per taxpayer, federal corruption convictions, and pandemic-era unemployment improper-payment rate;
-          <b>freedom</b> = Cato Freedom in the 50 States 2026 overall rank (TN, NC, GA, WA, VA, IL not yet readable, so their 2021 rank is used); <b>self-defence</b> and <b>landlord</b> are 1–5 researcher ratings (castle doctrine, stand-your-ground, permitless carry, local preemption; eviction speed, just-cause, rent control, squatter law).</li>
+          <b>freedom</b> = Cato Freedom in the 50 States 2026 overall rank (where the 2026 rank was not readable, the 2021 rank is used); <b>self-defence</b> and <b>landlord</b> are 1–5 researcher ratings (castle doctrine, stand-your-ground, permitless carry, local preemption; eviction speed, just-cause, rent control, squatter law).</li>
         <li><b>Hazard:</b> FEMA National Risk Index county rating (1 = very low, 5 = very high). Florida home insurance ($2.8–6k/yr) isn't in the house price.</li>
       </ul>
     </section>
@@ -216,7 +217,7 @@ const CRIT = [
   { k: "snow",    g: "driving", label: "Little snow / ice",            get: d => d.snow, hi: false, f: v => v + " in" },
   { k: "commute", g: "driving", label: "Short commutes",               get: d => d.commute, hi: false, f: v => v + " min" },
   { k: "intl",    g: "travel",  label: "International airport",        get: d => Math.log1p(d.intl), hi: true, f: (v, d) => d.intl + " intl" },
-  { k: "domestic",g: "travel",  label: "Domestic airport",             get: d => d.dom_rank, hi: false, f: v => "#" + v },
+  { k: "domestic",g: "travel",  label: "Domestic airport",             get: d => d.dom_rank, hi: false, f: (v, d) => "#" + v + " · " + d.dom_n + " US nonstops" },
   { k: "redhat",  g: "travel",  label: "Red Hat office nearby",        get: d => d.redhat, hi: true, f: v => v ? "yes" : "no" },
   { k: "eco",     g: "economy", label: "Startup & VC ecosystem",       get: d => d.ecosystem, hi: true, f: v => v + "/5" },
   { k: "founder", g: "economy", label: "Healthtech founder fit",       get: d => d.founder, hi: true, f: v => v + "/5" },
@@ -227,6 +228,8 @@ const CRIT = [
   { k: "selfdef", g: "politics",label: "Right to self-defence & carry", get: d => d.selfdef, hi: true, f: (v, d) => v + "/5" + (d.permitless ? " · permitless" : "") },
   { k: "landlord",g: "politics",label: "Landlord & eviction rights",    get: d => d.landlord, hi: true, f: (v, d) => v + "/5 · " + d.evict_days + " d" },
 ];
+document.querySelectorAll(".nplaces").forEach(e => e.textContent = D.length);
+document.getElementById("ncrit").textContent = CRIT.length;
 
 const WCRIT = () => CRIT.filter(c => !c.pol);
 const PRESETS = Object.fromEntries(Object.entries({
@@ -421,7 +424,7 @@ function renderDetail(res) {
     tooltip: {},
     series: [{ type: "radar", data: [
       { name: d.name, value: Object.keys(GROUPS).map(g => +r.gs[g].toFixed(0)), areaStyle: { opacity: .25 }, lineStyle: { color: "#2a6fdb" }, itemStyle: { color: "#2a6fdb" } },
-      { name: "Average of 22", value: Object.keys(GROUPS).map(g => +(d3.mean(res, x => x.gs[g])).toFixed(0)), lineStyle: { type: "dashed", color: "#999" }, itemStyle: { color: "#999" } },
+      { name: "Average of " + res.length, value: Object.keys(GROUPS).map(g => +(d3.mean(res, x => x.gs[g])).toFixed(0)), lineStyle: { type: "dashed", color: "#999" }, itemStyle: { color: "#999" } },
     ] }],
   });
   const strong = WCRIT().filter(c => W[c.k] > 0.5).sort((a, b) => r.s[b.k] - r.s[a.k]);

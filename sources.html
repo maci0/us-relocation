@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sources – US relocation decision board</title>
+<style>
+  :root { --fg: #1d2330; --muted: #5d6675; --line: #e3e6eb; --bg: #f6f7f9; --card: #fff; --accent: #2a6df4; }
+  @media (prefers-color-scheme: dark) { :root { --fg: #e6e8ec; --muted: #9aa3b2; --line: #2c323d; --bg: #14171c; --card: #1b1f26; --accent: #6d9cff; } }
+  body { margin: 0; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); }
+  main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  p { color: var(--muted); margin: 4px 0 16px; max-width: 80ch; }
+  a { color: var(--accent); }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+  input, select { font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--fg); }
+  input[type=search] { flex: 1 1 260px; }
+  .count { color: var(--muted); }
+  .scroll { overflow: auto; background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { position: sticky; top: 0; background: var(--card); font-weight: 600; white-space: nowrap; }
+  td.src { max-width: 520px; }
+  td.val { max-width: 200px; overflow-wrap: anywhere; }
+  .est { font-size: 11px; padding: 1px 5px; border-radius: 4px; background: #f4c54233; color: #a26b00; }
+  .pager { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+  button { font: inherit; padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--fg); cursor: pointer; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Where every number comes from</h1>
+  <p>One row per sourced figure on the <a href="./">decision board</a>: the place, the data set, the field, its value, the source and the date it was read.
+     Rows marked <span class="est">est</span> are estimates or gap fills. For the original 22 places, the basic board fields (house price, crime, climate and so on) list the source used for every place;
+     their per-place notes are in the research document. <a href="provenance.csv" download>Download all as CSV</a>.</p>
+  <div class="bar">
+    <input type="search" id="q" placeholder="Search source, field or value…" aria-label="Search">
+    <select id="place" aria-label="Place"><option value="">All places</option></select>
+    <select id="ds" aria-label="Data set"><option value="">All data sets</option></select>
+    <label><input type="checkbox" id="estonly"> Estimates only</label>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="scroll"><table>
+    <thead><tr><th>Place</th><th>Data set</th><th>Field</th><th>Value</th><th>Source</th><th>Date</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table></div>
+  <div class="pager"><button id="prev">Previous</button><span id="page" class="count"></span><button id="next">Next</button></div>
+</main>
+<script>
+const PER = 200;
+let ALL = [], VIEW = [], page = 0;
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// columns: place, scope, dataset, field, value, source, url, date, est, file
+fetch("provenance.json").then(r => r.json()).then(rows => {
+  ALL = rows;
+  const uniq = i => [...new Set(rows.map(r => r[i]).filter(Boolean))].sort();
+  for (const p of uniq(0)) $("place").add(new Option(p, p));
+  for (const d of uniq(2)) $("ds").add(new Option(d, d));
+  const q = new URLSearchParams(location.search).get("place");
+  if (q) $("place").value = q;
+  filter();
+});
+function filter() {
+  const q = $("q").value.toLowerCase(), pl = $("place").value, ds = $("ds").value, est = $("estonly").checked;
+  VIEW = ALL.filter(r => (!pl || r[0] === pl) && (!ds || r[2] === ds) && (!est || r[8]) &&
+    (!q || [r[0], r[1], r[3], r[4], r[5], r[6]].join(" ").toLowerCase().includes(q)));
+  page = 0; draw();
+}
+function draw() {
+  const n = Math.max(1, Math.ceil(VIEW.length / PER));
+  $("count").textContent = VIEW.length.toLocaleString() + " of " + ALL.length.toLocaleString() + " rows";
+  $("page").textContent = "Page " + (page + 1) + " of " + n;
+  $("rows").innerHTML = VIEW.slice(page * PER, page * PER + PER).map(r =>
+    `<tr><td>${esc(r[0] || r[1])}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td><td class="val">${esc(r[4])}</td>` +
+    `<td class="src">${r[6] ? `<a href="${esc(r[6])}" target="_blank" rel="noopener">${esc(r[5])}</a>` : esc(r[5])}` +
+    `${r[8] ? ' <span class="est">est</span>' : ""}</td><td>${esc(r[7])}</td></tr>`).join("");
+}
+for (const id of ["q", "place", "ds", "estonly"]) $(id).addEventListener("input", filter);
+$("prev").onclick = () => { if (page > 0) { page--; draw(); } };
+$("next").onclick = () => { if ((page + 1) * PER < VIEW.length) { page++; draw(); } };
+</script>
+</body>
+</html>
